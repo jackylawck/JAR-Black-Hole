@@ -1,11 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const uiPanel = document.getElementById('ui-panel');
-  if (uiPanel) {
-    uiPanel.style.opacity = '0';
-    uiPanel.style.transition = 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
-  }
-
-  // 1. 安全初始化各模組
+  // 1. 初始化各物理、音訊與視覺模組
   try {
     if (typeof window.I18N !== 'undefined' && window.I18N.init) window.I18N.init();
     if (typeof window.SceneManager !== 'undefined' && window.SceneManager.init) window.SceneManager.init();
@@ -25,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.error('模組初始化異常:', err);
   }
 
-  // 解鎖音訊 (首次使用者互動)
+  // 首次點擊/觸碰時解鎖 Web Audio API
   const unlockAudio = () => {
     if (typeof window.AudioManager !== 'undefined') {
       if (!window.AudioManager.isInitialized) {
@@ -38,58 +32,19 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('click', unlockAudio, { once: true });
   window.addEventListener('touchstart', unlockAudio, { once: true });
 
-  requestAnimationFrame(() => {
-    if (uiPanel) uiPanel.style.opacity = '1';
-  });
-
-  // 🌟 2. 智能捲起 / 展開切換（捲起時只留實時數據與狀態）
-  const drawerToggleBar = document.getElementById('drawerToggleBar');
-  const drawerToggleText = document.getElementById('drawerToggleText');
-
-  function updateToggleText(isCollapsed) {
-    if (!drawerToggleText) return;
-    const isEn = window.I18N?.currentLang === 'en';
-    if (isCollapsed) {
-      drawerToggleText.textContent = isEn ? '▲ EXPAND CONSOLE (FULL CONTROLS)' : '▲ 展開控制台 (完整調節)';
-    } else {
-      drawerToggleText.textContent = isEn ? '▼ COLLAPSE CONSOLE (TELEMETRY ONLY)' : '▼ 捲起控制台 (只留實時數據)';
-    }
-  }
-
-  function toggleCockpitHUD() {
-    if (!uiPanel) return;
-    uiPanel.classList.toggle('hud-collapsed');
-    const isCollapsed = uiPanel.classList.contains('hud-collapsed');
-    updateToggleText(isCollapsed);
-    if (typeof window.AudioManager !== 'undefined') window.AudioManager.playUITick?.();
-  }
-
-  drawerToggleBar?.addEventListener('click', toggleCockpitHUD);
-
-  // 🌟 觸控/滑動 3D 畫布時自動收起至「實時數據模式」，最大化觀看視野
-  const canvasContainer = document.getElementById('canvas-container');
-  if (canvasContainer && uiPanel) {
-    canvasContainer.addEventListener('pointerdown', () => {
-      if (!uiPanel.classList.contains('hud-collapsed')) {
-        uiPanel.classList.add('hud-collapsed');
-        updateToggleText(true);
-      }
-    });
-  }
-
-  // 3. 狀態管理
+  // 2. 核心狀態管理與時間微積分
   let speedFactor = 1.0;
-  let massScale = 1.0;
+  let massScale = 2.5;
   let lastMass = 2.5;
   let lastIsco = 15.0;
   let lastPhoton = 7.5;
   let lastDoppler = 1.42;
   let lastRedshift = 1.28;
 
-  const clock = typeof THREE !== 'undefined' ? new THREE.Clock() : { getDelta: () => 0.016, getElapsedTime: () => performance.now() * 0.001 };
+  let lastFrameTime = performance.now();
 
-  // 🌟 獨立平滑數值緩動動畫管線 (Cubic Easing)
-  function animateValue(el, start, end, suffix, decimals = 1, duration = 280) {
+  // 平滑數值緩動動畫 (Cubic Easing)
+  function animateValue(el, start, end, suffix, decimals = 1, duration = 240) {
     if (!el) return;
     const startTime = performance.now();
     const range = end - start;
@@ -100,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const eased = 1.0 - Math.pow(1.0 - progress, 3);
       const currentVal = (start + range * eased).toFixed(decimals);
       
-      el.innerHTML = `${currentVal} <small>${suffix}</small>`;
+      el.innerHTML = suffix ? `${currentVal} <small>${suffix}</small>` : currentVal;
       if (progress < 1.0) {
         requestAnimationFrame(step);
       }
@@ -108,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(step);
   }
 
-  // 🌟 度規曲率狀態機更新 (STABLE -> WARNING -> CRITICAL) 與音訊聯動
+  // 3. 時空度規曲率狀態機更新 (STABLE -> WARNING -> CRITICAL)
   function updateCurvatureState(mass) {
     const horizonBadge = document.getElementById('horizonState');
     if (!horizonBadge) return;
@@ -116,11 +71,11 @@ document.addEventListener('DOMContentLoaded', () => {
     horizonBadge.classList.remove('status-stable', 'status-warning', 'status-critical');
 
     let state = 'STABLE';
-    if (mass < 3.0) {
+    if (mass < 2.2) {
       horizonBadge.textContent = 'STABLE';
       horizonBadge.classList.add('status-stable');
       state = 'STABLE';
-    } else if (mass < 4.5) {
+    } else if (mass < 2.8) {
       horizonBadge.textContent = 'WARNING';
       horizonBadge.classList.add('status-warning');
       state = 'WARNING';
@@ -131,51 +86,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (typeof window.AudioManager !== 'undefined') {
-      window.AudioManager.updateCurvatureAudio(state, massScale, speedFactor);
+      window.AudioManager.updateCurvatureAudio(state, mass / 2.5, speedFactor);
     }
   }
 
-  // 4. 雙模式切換
+  // 4. 運行模式與多語言切換
   const modeBasicBtn = document.getElementById('mode-basic');
   const modeProBtn = document.getElementById('mode-pro');
+  modeBasicBtn?.addEventListener('click', () => {
+    modeBasicBtn.classList.add('active');
+    modeProBtn?.classList.remove('active');
+    document.body.classList.remove('mode-pro');
+    window.I18N?.setMode('basic');
+  });
+  modeProBtn?.addEventListener('click', () => {
+    modeProBtn.classList.add('active');
+    modeBasicBtn?.classList.remove('active');
+    document.body.classList.add('mode-pro');
+    window.I18N?.setMode('pro');
+  });
 
-  function switchMode(mode) {
-    if (mode === 'pro') {
-      modeProBtn?.classList.add('active');
-      modeBasicBtn?.classList.remove('active');
-      document.body.classList.remove('mode-basic');
-      document.body.classList.add('mode-pro');
-      window.I18N?.setMode('pro');
-    } else {
-      modeBasicBtn?.classList.add('active');
-      modeProBtn?.classList.remove('active');
-      document.body.classList.remove('mode-pro');
-      document.body.classList.add('mode-basic');
-      window.I18N?.setMode('basic');
-    }
-    if (typeof window.AudioManager !== 'undefined') window.AudioManager.playUITick?.();
-  }
-
-  modeBasicBtn?.addEventListener('click', () => switchMode('basic'));
-  modeProBtn?.addEventListener('click', () => switchMode('pro'));
-
-  // 5. 語言切換
   const btnZh = document.getElementById('btn-zh');
   const btnEn = document.getElementById('btn-en');
   btnZh?.addEventListener('click', () => {
     btnZh.classList.add('active');
     btnEn?.classList.remove('active');
     window.I18N?.setLang('zh');
-    updateToggleText(uiPanel?.classList.contains('hud-collapsed'));
   });
   btnEn?.addEventListener('click', () => {
     btnEn.classList.add('active');
     btnZh?.classList.remove('active');
     window.I18N?.setLang('en');
-    updateToggleText(uiPanel?.classList.contains('hud-collapsed'));
   });
 
-  // 6. 滑塊互動綁定與全指標獨立滾動
+  // 5. 🧮 接入 GRPhysics 張量與特徵軌道計算
   const speedRange = document.getElementById('speedRange');
   const speedVal = document.getElementById('speedVal');
   speedRange?.addEventListener('input', (e) => {
@@ -192,18 +136,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function triggerMetricUpdate() {
     const rawMass = parseFloat(massRange ? massRange.value : 2.5);
-    massScale = rawMass / 2.5;
+    massScale = rawMass;
 
-    const newIsco = rawMass * 6.0;
-    const newPhoton = rawMass * 3.0;
-    const newDoppler = 1.0 + (speedFactor / 3.0) * 0.42;
-    const newRedshift = 1.0 / Math.sqrt(Math.max(0.1, 1.0 - (2.0 * massScale) / 12.0));
+    const spin_a = Math.min(0.98, (speedFactor / 3.0) * 0.9);
+
+    let newIsco = rawMass * 6.0;
+    let newPhoton = rawMass * 3.0;
+    let newDoppler = 1.42;
+    let newRedshift = 1.28;
+
+    if (typeof window.GRPhysics !== 'undefined') {
+      newIsco = window.GRPhysics.getISCO(rawMass, spin_a);
+      const phObj = window.GRPhysics.getPhotonOrbit(rawMass, spin_a);
+      newPhoton = phObj.prograde;
+      
+      const shiftObj = window.GRPhysics.getSpectralShiftFactor(newIsco * 1.2, Math.PI / 2, 0.45, rawMass, spin_a);
+      newDoppler = 1.0 + (1.0 / Math.max(0.1, shiftObj.gFactor) - 1.0) * 0.35;
+      newRedshift = shiftObj.gravitationalRedshift;
+    }
 
     animateValue(massValDisplay, lastMass, rawMass, 'M☉', 1);
     animateValue(iscoVal, lastIsco, newIsco, 'Rs', 1);
     animateValue(photonVal, lastPhoton, newPhoton, 'Rs', 1);
-    animateValue(document.getElementById('telemetryDoppler'), lastDoppler, newDoppler, 'δ', 2);
-    animateValue(document.getElementById('telemetryRedshift'), lastRedshift, newRedshift, '1+z', 2);
+    animateValue(document.getElementById('telemetryDoppler'), lastDoppler, newDoppler, '', 2);
+    animateValue(document.getElementById('telemetryRedshift'), lastRedshift, newRedshift, '', 2);
 
     lastMass = rawMass;
     lastIsco = newIsco;
@@ -215,13 +171,13 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCurvatureState(rawMass);
 
     if (typeof window.SceneManager !== 'undefined') {
-      window.SceneManager.updateBlackHoleScale(massScale);
+      window.SceneManager.updateBlackHoleScale(rawMass / 2.5, spin_a);
     }
   }
 
   massRange?.addEventListener('input', triggerMetricUpdate);
 
-  // 7. 演化時間軸控制器
+  // 6. 恆星演化時間軸控制器
   const evoSlider = document.getElementById('evolutionSlider');
   evoSlider?.addEventListener('input', (e) => {
     if (typeof window.EvolutionManager !== 'undefined') {
@@ -234,34 +190,27 @@ document.addEventListener('DOMContentLoaded', () => {
   const playPauseBtn = document.getElementById('playPauseBtn');
   playPauseBtn?.addEventListener('click', () => {
     if (typeof window.EvolutionManager !== 'undefined') {
-      if (window.EvolutionManager.progress >= 1.0) {
-        window.EvolutionManager.progress = 0.0;
-      }
+      if (window.EvolutionManager.progress >= 1.0) window.EvolutionManager.progress = 0.0;
       window.EvolutionManager.isPlaying = !window.EvolutionManager.isPlaying;
       window.EvolutionManager.updatePlayBtn?.();
     }
   });
 
-  const prevBtn = document.getElementById('prevStageBtn');
-  const nextBtn = document.getElementById('nextStageBtn');
-  prevBtn?.addEventListener('click', () => {
+  document.getElementById('prevStageBtn')?.addEventListener('click', () => {
     if (typeof window.EvolutionManager !== 'undefined') {
       window.EvolutionManager.isPlaying = false;
-      window.EvolutionManager.updatePlayBtn?.();
       window.EvolutionManager.setProgress(window.EvolutionManager.progress - 0.25);
     }
   });
-  nextBtn?.addEventListener('click', () => {
+  document.getElementById('nextStageBtn')?.addEventListener('click', () => {
     if (typeof window.EvolutionManager !== 'undefined') {
       window.EvolutionManager.isPlaying = false;
-      window.EvolutionManager.updatePlayBtn?.();
       window.EvolutionManager.setProgress(window.EvolutionManager.progress + 0.25);
     }
   });
 
-  // 8. 發射探測器
-  const launchBtn = document.getElementById('launchBtn');
-  launchBtn?.addEventListener('click', () => {
+  // 7. 發射探測器
+  document.getElementById('launchBtn')?.addEventListener('click', () => {
     if (typeof window.ProbeManager !== 'undefined') {
       window.ProbeManager.launch();
     }
@@ -270,69 +219,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 9. ⚛️ 科研模式：動態滾動測地線張量日誌
-  let logTimer = 0;
-  function updateProTerminalStream(delta) {
-    if (window.I18N?.currentMode !== 'pro') return;
-
-    logTimer += delta;
-    if (logTimer >= 0.6) {
-      logTimer = 0;
-      const logContainer = document.getElementById('proTerminalLog');
-      if (!logContainer) return;
-
-      const g00 = (-(1.0 - (2.0 * massScale) / 10.0)).toFixed(4);
-      const christoffel = (0.012 * massScale * Math.random()).toFixed(5);
-      const timeStamp = (performance.now() * 0.001).toFixed(2);
-
-      const logTemplates = [
-        `[${timeStamp}s] GEODESIC RK4: g_00=${g00} | Γ^r_tt=${christoffel}`,
-        `[${timeStamp}s] FLUX DENSITY: ${ (1420 * massScale).toFixed(0) } Jy | POLARIZATION: ${(speedFactor * 33.2).toFixed(1)}%`,
-        `[${timeStamp}s] FRAME-DRAGGING: ω=${(speedFactor * 0.12).toFixed(4)} rad/s | r_+=${(2 * massScale).toFixed(2)}Rs`
-      ];
-
-      const newLine = document.createElement('div');
-      newLine.className = 'pro-stream-line';
-      newLine.textContent = `>> ` + logTemplates[Math.floor(Math.random() * logTemplates.length)];
-
-      logContainer.insertBefore(newLine, logContainer.firstChild);
-      while (logContainer.children.length > 3) {
-        logContainer.removeChild(logContainer.lastChild);
-      }
-    }
-  }
-
-  // 10. 動畫主迴圈
-  function animate() {
+  // 8. 主動畫迴圈 (高刷新率幀率自適應)
+  function animate(now) {
     requestAnimationFrame(animate);
 
-    const delta = clock.getDelta();
-    const elapsedTime = clock.getElapsedTime();
+    const rawDelta = (now - lastFrameTime) * 0.001;
+    const delta = Math.min(Math.max(rawDelta, 0.001), 0.05);
+    lastFrameTime = now;
+    const elapsedTime = now * 0.001;
 
     if (window.SceneManager?.controls) {
       window.SceneManager.controls.update();
     }
 
-    if (window.SceneManager?.photonRing && window.SceneManager?.camera) {
-      window.SceneManager.photonRing.quaternion.copy(window.SceneManager.camera.quaternion);
-    }
-
-    try { window.ParticleManager?.update(delta, speedFactor, massScale); } catch (e) {}
-    try { window.ProbeManager?.update(massScale); } catch (e) {}
+    try { window.ParticleManager?.update(delta, speedFactor, massScale / 2.5); } catch (e) {}
+    try { window.ProbeManager?.update(massScale / 2.5); } catch (e) {}
     try { window.EvolutionManager?.update(delta, elapsedTime); } catch (e) {}
     try {
-      window.AudioManager?.updateListenerAndParams(window.SceneManager?.camera, massScale, speedFactor);
+      window.AudioManager?.updateListenerAndParams(window.SceneManager?.camera, massScale / 2.5, speedFactor);
       window.AudioManager?.applyAnalogJitter(elapsedTime);
     } catch (e) {}
 
-    updateProTerminalStream(delta);
-
-    // 雙重視口渲染（主座艙視角 + 探測器 POV PiP）
     if (window.SceneManager?.renderDualViewport) {
-      window.SceneManager.renderDualViewport();
+      window.SceneManager.renderDualViewport(elapsedTime);
     }
   }
 
   updateCurvatureState(2.5);
-  animate();
+  requestAnimationFrame(animate);
 });
