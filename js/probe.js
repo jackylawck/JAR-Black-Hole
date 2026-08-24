@@ -20,7 +20,7 @@ window.ProbeManager = {
     const probeMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
     const probeMesh = new THREE.Mesh(probeGeo, probeMat);
 
-    const maxTrailPoints = 120;
+    const maxTrailPoints = 200;
     const trailPositions = new Float32Array(maxTrailPoints * 3);
     const trailGeo = new THREE.BufferGeometry();
     trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
@@ -33,12 +33,13 @@ window.ProbeManager = {
     });
     const trailLine = new THREE.Line(trailGeo, trailMat);
 
-    const initialRadius = 18.0;
+    // 從較遠穩定外軌道發射
+    const initialRadius = 22.0;
     const initialAngle = Math.random() * Math.PI * 2;
     const startX = Math.cos(initialAngle) * initialRadius;
     const startZ = Math.sin(initialAngle) * initialRadius;
 
-    probeMesh.position.set(startX, 0.4, startZ);
+    probeMesh.position.set(startX, 0.3, startZ);
 
     this.scene.add(probeMesh);
     this.scene.add(trailLine);
@@ -48,11 +49,13 @@ window.ProbeManager = {
       trail: trailLine,
       radius: initialRadius,
       theta: initialAngle,
-      y: 0.4,
-      radialVelocity: 0.05,
-      angularVelocity: 0.02,
+      y: 0.3,
+      // 🌟 降低徑向墜落速度，提高角速度，使探測器繞行多圈穩定衰減
+      radialVelocity: 0.015,
+      angularVelocity: 0.035,
       history: [],
       maxHistory: maxTrailPoints,
+      freezeCounter: 0,
       isDestroyed: false
     };
 
@@ -81,14 +84,22 @@ window.ProbeManager = {
       const p = this.probes[i];
       if (p.isDestroyed) continue;
 
-      const gravityPull = (Rs * 2.2) / Math.max(p.radius * p.radius, 0.1);
-      p.radialVelocity += gravityPull * 0.06;
-      p.angularVelocity += gravityPull * 0.025;
+      // 廣義相對論引力加速度（適度平滑）
+      const gravityPull = (Rs * 1.5) / Math.max(p.radius * p.radius, 0.2);
+      
+      // 🌟 當接近事件視界時，強烈時間膨脹 (Gravitational Time Dilation Freeze)
+      let timeDilation = 1.0;
+      if (p.radius < Rs * 1.25) {
+        timeDilation = Math.max(0.04, (p.radius - Rs) / (Rs * 0.25));
+      }
 
-      p.radius -= p.radialVelocity;
-      p.theta += p.angularVelocity;
+      p.radialVelocity += gravityPull * 0.012 * timeDilation;
+      p.angularVelocity += gravityPull * 0.008 * timeDilation;
 
-      // 意粉化拉伸與潮汐撕裂
+      p.radius -= p.radialVelocity * timeDilation;
+      p.theta += p.angularVelocity * timeDilation;
+
+      // 意粉化拉伸變形
       if (p.radius < ISCO) {
         const tidalFactor = Math.min(8.0, ISCO / Math.max(p.radius, 0.1));
         p.mesh.scale.set(1.0 / Math.sqrt(tidalFactor), tidalFactor, 1.0 / Math.sqrt(tidalFactor));
@@ -97,9 +108,9 @@ window.ProbeManager = {
 
       p.mesh.position.x = Math.cos(p.theta) * p.radius;
       p.mesh.position.z = Math.sin(p.theta) * p.radius;
-      p.mesh.position.y *= 0.96;
+      p.mesh.position.y *= 0.98;
 
-      // 🌟 同步推流探測器四聯儀表板 Overlay
+      // 🌟 推流 PiP 儀表板
       if (this.activeProbe === p && this.probeCamera) {
         this.probeCamera.position.copy(p.mesh.position);
         this.probeCamera.lookAt(0, 0, 0);
@@ -114,13 +125,13 @@ window.ProbeManager = {
         const estimatedTemp = Math.floor(2800 + (ISCO / Math.max(p.radius, 0.2)) * 14500);
 
         if (pipDist) pipDist.textContent = `${p.radius.toFixed(2)} Rs`;
-        if (pipVel) pipVel.textContent = `${Math.min(0.99, currentSpeed * 2.5).toFixed(2)} c`;
-        if (pipTidal) pipTidal.textContent = `${(gravityPull * 18.5).toFixed(1)} g`;
+        if (pipVel) pipVel.textContent = `${Math.min(0.99, currentSpeed * 2.8).toFixed(2)} c`;
+        if (pipTidal) pipTidal.textContent = `${(gravityPull * 16.0).toFixed(1)} g`;
         if (pipTemp) pipTemp.textContent = `${estimatedTemp.toLocaleString()} K`;
 
         if (pipAlert) {
-          if (p.radius < Rs * 1.3) {
-            pipAlert.textContent = 'PLUNGING';
+          if (p.radius < Rs * 1.1) {
+            pipAlert.textContent = 'FREEZING (1+z)';
             pipAlert.style.color = '#f43f5e';
           } else if (p.radius < ISCO) {
             pipAlert.textContent = 'SPAGHETTI';
@@ -143,8 +154,13 @@ window.ProbeManager = {
       }
       p.trail.geometry.attributes.position.needsUpdate = true;
 
-      // 穿越事件視界吞噬銷毀
-      if (p.radius <= Rs) {
+      // 在視界臨界處停留觀測時間（凍結紅移）
+      if (p.radius <= Rs * 1.02) {
+        p.freezeCounter++;
+        p.mesh.material.opacity = Math.max(0, 1.0 - p.freezeCounter / 80);
+      }
+
+      if (p.freezeCounter > 80) {
         this.scene.remove(p.mesh);
         this.scene.remove(p.trail);
         p.mesh.geometry.dispose();
