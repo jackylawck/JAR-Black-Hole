@@ -16,8 +16,9 @@ window.SceneManager = {
     
     this.scene = new THREE.Scene();
 
-    this.camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1500);
-    this.camera.position.set(0, 3.5, 24);
+    // 🌟 1. 調整相機高度與俯角，讓黑洞自然居中偏上，徹底避開底部座艙 HUD
+    this.camera = new THREE.PerspectiveCamera(48, width / height, 0.1, 1500);
+    this.camera.position.set(0, 6.2, 26);
 
     this.renderer = new THREE.WebGLRenderer({ 
       antialias: true, 
@@ -35,17 +36,20 @@ window.SceneManager = {
       this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
       this.controls.enableDamping = true;
       this.controls.dampingFactor = 0.05;
-      this.controls.maxDistance = 70;
-      this.controls.minDistance = 4.0;
+      this.controls.maxDistance = 75;
+      this.controls.minDistance = 5.0;
+      // 🌟 將視角旋轉中心微微向下偏移，讓黑洞在畫面上方寬闊展示
+      this.controls.target.set(0, -1.0, 0);
+      this.controls.update();
     }
 
-    // 1. 黑洞本體 (事件視界)
+    // 2. 黑洞本體 (事件視界)
     const bhGeo = new THREE.SphereGeometry(2.0, 48, 48);
     const bhMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
     this.blackHoleSphere = new THREE.Mesh(bhGeo, bhMat);
     this.scene.add(this.blackHoleSphere);
 
-    // 2. 光子球高溫光環
+    // 3. 光子球高溫光環
     const ringGeo = new THREE.RingGeometry(2.01, 2.3, 96);
     const ringMat = new THREE.MeshBasicMaterial({
       color: 0xffd060,
@@ -58,7 +62,7 @@ window.SceneManager = {
     this.photonRing = new THREE.Mesh(ringGeo, ringMat);
     this.scene.add(this.photonRing);
 
-    // 3. 引力透鏡垂直光環
+    // 4. 引力透鏡垂直光環
     const lensGeo = new THREE.RingGeometry(2.05, 2.45, 96);
     const lensMat = new THREE.MeshBasicMaterial({
       color: 0xff9922,
@@ -72,7 +76,7 @@ window.SceneManager = {
     this.lensingRingTop.rotation.y = Math.PI / 2;
     this.scene.add(this.lensingRingTop);
 
-    // 4. 背景星空
+    // 5. 背景星空
     const starsCount = 2000;
     const starsGeo = new THREE.BufferGeometry();
     const starPos = new Float32Array(starsCount * 3);
@@ -86,7 +90,7 @@ window.SceneManager = {
     );
     this.scene.add(starMesh);
 
-    // 5. 後處理 (發光 UnrealBloomPass)
+    // 6. 後處理發光
     try {
       if (typeof THREE.EffectComposer !== 'undefined' && typeof THREE.UnrealBloomPass !== 'undefined') {
         const renderScene = new THREE.RenderPass(this.scene, this.camera);
@@ -109,7 +113,7 @@ window.SceneManager = {
     window.addEventListener('resize', () => this.onWindowResize());
   },
 
-  // 🌟 雙重視口渲染管線 (主視角 + 探測器 POV 畫中畫)
+  // 🌟 雙重視口渲染管線 (主座艙視角 + 探測器 POV 畫中畫)
   renderDualViewport() {
     const w = window.innerWidth;
     const h = window.innerHeight;
