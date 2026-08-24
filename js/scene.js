@@ -8,10 +8,7 @@ window.SceneManager = {
   blackHoleSphere: null,
   photonRing: null,
   lensingRingTop: null,
-  raymarchMesh: null,
-  raymarchMaterial: null,
   currentMass: 2.5,
-  currentSpin: 0.3,
 
   init() {
     const container = document.getElementById('canvas-container') || document.body;
@@ -22,7 +19,7 @@ window.SceneManager = {
 
     const isPortrait = height > width;
     this.camera = new THREE.PerspectiveCamera(isPortrait ? 52 : 38, width / height, 0.1, 1500);
-    this.camera.position.set(0, isPortrait ? 3.8 : 2.5, isPortrait ? 22.0 : 16.0);
+    this.camera.position.set(0, isPortrait ? 4.2 : 2.8, isPortrait ? 22.0 : 16.0);
 
     this.renderer = new THREE.WebGLRenderer({ 
       antialias: true, 
@@ -38,23 +35,32 @@ window.SceneManager = {
     container.innerHTML = '';
     container.appendChild(this.renderer.domElement);
 
+    // 🌟 1. 啟用 360 度手勢旋轉控制 (OrbitControls 綁定 renderer.domElement)
     if (typeof THREE.OrbitControls !== 'undefined') {
       this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
       this.controls.enableDamping = true;
       this.controls.dampingFactor = 0.05;
-      this.controls.maxDistance = 60;
-      this.controls.minDistance = 4.0;
+      this.controls.enableRotate = true;
+      this.controls.enableZoom = true;
+      this.controls.enablePan = false;
+      this.controls.maxDistance = 50;
+      this.controls.minDistance = 3.5;
+      // 支援雙指縮放與單指 360 度旋轉
+      this.controls.touches = {
+        ONE: THREE.TOUCH.ROTATE,
+        TWO: THREE.TOUCH.DOLLY_PAN
+      };
       this.controls.target.set(0, isPortrait ? 0.8 : 0.3, 0);
       this.controls.update();
     }
 
-    // 1. 黑洞事件視界
+    // 2. 黑洞事件視界
     const bhGeo = new THREE.SphereGeometry(2.0, 48, 48);
     const bhMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
     this.blackHoleSphere = new THREE.Mesh(bhGeo, bhMat);
     this.scene.add(this.blackHoleSphere);
 
-    // 2. 光子球高溫光環
+    // 3. 光子球高溫光環
     const ringGeo = new THREE.RingGeometry(2.01, 2.3, 96);
     const ringMat = new THREE.MeshBasicMaterial({
       color: 0xffbb44,
@@ -67,7 +73,7 @@ window.SceneManager = {
     this.photonRing = new THREE.Mesh(ringGeo, ringMat);
     this.scene.add(this.photonRing);
 
-    // 3. 垂直透鏡光環
+    // 4. 垂直透鏡光環
     const lensGeo = new THREE.RingGeometry(2.05, 2.45, 96);
     const lensMat = new THREE.MeshBasicMaterial({
       color: 0xff8811,
@@ -81,7 +87,7 @@ window.SceneManager = {
     this.lensingRingTop.rotation.y = Math.PI / 2;
     this.scene.add(this.lensingRingTop);
 
-    // 4. 背景星空
+    // 5. 背景星空
     const starsCount = 2000;
     const starsGeo = new THREE.BufferGeometry();
     const starPos = new Float32Array(starsCount * 3);
@@ -95,7 +101,7 @@ window.SceneManager = {
     );
     this.scene.add(starMesh);
 
-    // 5. 後處理泛光
+    // 6. 後處理泛光
     try {
       if (typeof THREE.EffectComposer !== 'undefined' && typeof THREE.UnrealBloomPass !== 'undefined') {
         const renderScene = new THREE.RenderPass(this.scene, this.camera);
@@ -122,7 +128,7 @@ window.SceneManager = {
     const w = window.innerWidth;
     const h = window.innerHeight;
 
-    // 主畫面渲染
+    // 1. 主畫面渲染
     this.renderer.setViewport(0, 0, w, h);
     this.renderer.setScissor(0, 0, w, h);
     this.renderer.setScissorTest(false);
@@ -133,12 +139,14 @@ window.SceneManager = {
       this.renderer.render(this.scene, this.camera);
     }
 
-    // 探測器畫中畫 (右上角)
+    // 🌟 2. 右上角探測器畫中畫 (修正 Scissor 坐標，消除反白遮擋)
     if (window.ProbeManager?.activeProbe && window.ProbeManager?.probeCamera) {
-      const pipW = Math.min(200, w * 0.32);
+      const isLandscape = w > h;
+      const pipW = Math.min(180, w * 0.34);
       const pipH = pipW * 0.72;
-      const pipX = w - pipW - 14;
-      const pipY = h - pipH - 56;
+      const topOffset = isLandscape ? 38 : 64;
+      const pipX = w - pipW - 12;
+      const pipY = h - pipH - topOffset; // WebGL Scissor Y 軸由下往上算
 
       this.renderer.clearDepth();
       this.renderer.setScissorTest(true);
@@ -168,7 +176,7 @@ window.SceneManager = {
 
     this.camera.aspect = width / height;
     this.camera.fov = isPortrait ? 52 : 38;
-    this.camera.position.set(0, isPortrait ? 3.8 : 2.5, isPortrait ? 22.0 : 16.0);
+    this.camera.position.set(0, isPortrait ? 4.2 : 2.8, isPortrait ? 22.0 : 16.0);
     if (this.controls) {
       this.controls.target.set(0, isPortrait ? 0.8 : 0.3, 0);
       this.controls.update();
