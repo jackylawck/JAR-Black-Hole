@@ -72,8 +72,14 @@
     </div>
   </aside>
 
-  <!-- 3A 太空船透視座艙 HUD 主面板 -->
+  <!-- 3A 太空船透視座艙 HUD 主面板 (支援捲起只留實時數據) -->
   <aside class="hud-cockpit" id="ui-panel" aria-label="全息太空座艙終端">
+    <!-- 🌟 控制台收起/展開拉手 -->
+    <div id="drawerToggleBar" class="cockpit-toggle-bar" role="button" aria-expanded="true">
+      <div class="toggle-pill"></div>
+      <span id="drawerToggleText" class="toggle-text">▼ 捲起控制台 (只留實時數據)</span>
+    </div>
+
     <!-- 頂部狀態列 -->
     <div class="hud-status-strip">
       <div class="status-module">
@@ -96,7 +102,7 @@
       </div>
     </div>
 
-    <!-- 核心數據甲板 (質量主反應爐 + 次級軌道 + 科研串流) -->
+    <!-- 🌟 核心數據甲板 (無論捲起或展開，常駐顯示實時變化) -->
     <section class="telemetry-deck" aria-label="核心物理遙測">
       <div class="telemetry-card primary-reactor">
         <div class="deck-tag" id="label-mass-title">引力質量 (CORE MASS)</div>
@@ -125,8 +131,8 @@
       <div class="pro-stream-line">>> RK4 SOLVER: METRIC TENSOR INITIALIZED [g_μν]</div>
     </div>
 
-    <!-- 恆星演化史詩時間軸 -->
-    <section class="evolution-deck" aria-label="恆星演化歷程">
+    <!-- 恆星演化史詩時間軸 (捲起時收起) -->
+    <section class="evolution-deck collapsible-section" aria-label="恆星演化歷程">
       <div class="evo-hud-bar">
         <span class="evo-hud-title">🌌 恆星演化歷程 (TIMELINE)</span>
         <span id="evolutionStageText" class="evo-hud-badge">黑洞奇異點 (事件視界與吸積盤)</span>
@@ -142,8 +148,8 @@
       </div>
     </section>
 
-    <!-- 底部指令甲板 (滑塊調節 + 高權重發射按鈕) -->
-    <section class="command-deck" aria-label="操控指令甲板">
+    <!-- 底部指令甲板 (捲起時收起) -->
+    <section class="command-deck collapsible-section" aria-label="操控指令甲板">
       <div class="slider-unit">
         <div class="slider-meta">
           <label for="massRange" id="label-mass">質量調節</label>
