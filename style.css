@@ -16,7 +16,7 @@ body {
   overscroll-behavior: none;
 }
 
-/* 🌟 核心保證：Canvas 獨佔全螢幕手勢層 */
+/* 🌟 全螢幕 Canvas 手勢接收層 */
 #canvas-container {
   width: 100vw;
   height: 100vh;
@@ -47,7 +47,7 @@ body {
    ============================================================ */
 .top-hud-bar {
   position: fixed;
-  top: env(safe-area-inset-top, 10px);
+  top: env(safe-area-inset-top, 8px);
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
@@ -60,8 +60,12 @@ body {
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(56, 189, 248, 0.16);
   border-radius: 10px;
-  padding: 5px 14px;
-  pointer-events: auto;
+  padding: 4px 12px;
+  pointer-events: none; /* 面板穿透 */
+}
+
+.top-hud-bar > * {
+  pointer-events: auto; /* 內部按鈕可點擊 */
 }
 
 .sys-status { display: flex; align-items: center; gap: 5px; }
@@ -99,14 +103,14 @@ body {
 .lang-btn.active { border-color: #38bdf8; color: #f8fafc; }
 
 /* ============================================================
-   🌟 右上角探測器畫中畫
+   右上角探測器畫中畫
    ============================================================ */
 .probe-pip-deck {
   position: fixed;
-  top: calc(env(safe-area-inset-top, 10px) + 54px);
+  top: calc(env(safe-area-inset-top, 8px) + 48px);
   right: 12px;
-  width: min(180px, 34vw);
-  height: calc(min(180px, 34vw) * 0.72);
+  width: min(170px, 32vw);
+  height: calc(min(170px, 32vw) * 0.72);
   z-index: 25;
   border: 1px solid rgba(56, 189, 248, 0.4);
   background: rgba(2, 6, 23, 0.85);
@@ -172,7 +176,7 @@ body {
    ============================================================ */
 .bottom-hud-bar {
   position: fixed;
-  bottom: env(safe-area-inset-bottom, 12px);
+  bottom: env(safe-area-inset-bottom, 8px);
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
@@ -183,25 +187,29 @@ body {
   border: 1px solid rgba(56, 189, 248, 0.2);
   border-top: 2px solid rgba(56, 189, 248, 0.35);
   border-radius: 16px 16px 12px 12px;
-  padding: 8px 14px;
+  padding: 6px 12px;
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.85), 0 0 30px rgba(56, 189, 248, 0.06);
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  pointer-events: auto;
+  gap: 4px;
+  pointer-events: none; /* 面板邊界穿透，手勢可直接旋轉背景 3D 場景 */
+}
+
+.bottom-hud-bar > * {
+  pointer-events: auto; /* 內部卡片、按鈕、滑塊可點擊 */
 }
 
 .telemetry-deck-row {
   display: grid;
   grid-template-columns: 1.2fr 1fr 1fr 0.8fr 0.8fr 0.8fr;
-  gap: 5px;
+  gap: 4px;
 }
 
 .telemetry-card {
   background: rgba(15, 23, 42, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 6px;
-  padding: 4px 6px;
+  padding: 3px 5px;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -218,25 +226,25 @@ body {
 }
 .telemetry-card.primary-reactor .deck-tag { color: #38bdf8; }
 
-.telemetry-card .deck-val { font-family: 'Courier New', monospace; font-size: 1.05rem; font-weight: 800; line-height: 1.1; }
-.telemetry-card.primary-reactor .deck-val { font-size: 1.25rem; color: #f8fafc; text-shadow: 0 0 12px rgba(255, 255, 255, 0.3); }
-.telemetry-card .deck-val small { font-size: 0.5rem; font-weight: 500; opacity: 0.5; }
+.telemetry-card .deck-val { font-family: 'Courier New', monospace; font-size: 1.0rem; font-weight: 800; line-height: 1.1; }
+.telemetry-card.primary-reactor .deck-val { font-size: 1.2rem; color: #f8fafc; text-shadow: 0 0 12px rgba(255, 255, 255, 0.3); }
+.telemetry-card .deck-val small { font-size: 0.48rem; font-weight: 500; opacity: 0.5; }
 
 .val-cyan { color: #38bdf8; text-shadow: 0 0 8px rgba(56, 189, 248, 0.3); }
 .val-purple { color: #c084fc; text-shadow: 0 0 8px rgba(192, 132, 252, 0.3); }
 .val-amber { color: #fbbf24; text-shadow: 0 0 8px rgba(251, 191, 36, 0.3); }
 
 .val-chip {
-  font-family: 'Courier New', monospace; font-size: 0.48rem; font-weight: 800; padding: 1px 6px; border-radius: 3px; display: inline-block;
+  font-family: 'Courier New', monospace; font-size: 0.46rem; font-weight: 800; padding: 1px 5px; border-radius: 3px; display: inline-block;
 }
 .val-chip.status-stable { color: #38bdf8; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.2); }
 .val-chip.status-warning { color: #fbbf24; background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.3); }
 .val-chip.status-critical { color: #f43f5e; background: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.4); }
 
 .bottom-evolution-strip {
-  display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 3px 0; border-top: 1px solid rgba(255, 255, 255, 0.04); border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 2px 0; border-top: 1px solid rgba(255, 255, 255, 0.04); border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
-.evo-mini-meta { display: flex; align-items: center; gap: 5px; font-size: 0.48rem; font-family: 'Courier New', monospace; flex-shrink: 0; }
+.evo-mini-meta { display: flex; align-items: center; gap: 4px; font-size: 0.48rem; font-family: 'Courier New', monospace; flex-shrink: 0; }
 .evo-mini-title { color: #c084fc; font-weight: 700; }
 .evo-mini-badge { color: #38bdf8; }
 
@@ -251,7 +259,7 @@ body {
 }
 
 .bottom-controls-strip {
-  display: grid; grid-template-columns: 1.2fr 1.2fr 1.4fr; gap: 8px; align-items: center;
+  display: grid; grid-template-columns: 1.2fr 1.2fr 1.4fr; gap: 6px; align-items: center;
 }
 .mini-slider-box { display: flex; flex-direction: column; gap: 1px; }
 .slider-info { display: flex; justify-content: space-between; align-items: center; }
@@ -268,7 +276,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .bottom-launch-action {
-  position: relative; width: 100%; padding: 6px 12px; background: linear-gradient(135deg, #0284c7 0%, #7c3aed 100%); border: 1px solid rgba(125, 211, 252, 0.35); border-radius: 8px; color: #ffffff; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.5px; cursor: pointer; overflow: hidden; box-shadow: 0 4px 16px rgba(2, 132, 199, 0.25); white-space: nowrap;
+  position: relative; width: 100%; padding: 6px 10px; background: linear-gradient(135deg, #0284c7 0%, #7c3aed 100%); border: 1px solid rgba(125, 211, 252, 0.35); border-radius: 8px; color: #ffffff; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.5px; cursor: pointer; overflow: hidden; box-shadow: 0 4px 16px rgba(2, 132, 199, 0.25); white-space: nowrap;
 }
 
 .btn-glow {
@@ -281,20 +289,20 @@ input[type="range"]::-webkit-slider-thumb {
    ============================================================ */
 @media (max-width: 640px) and (orientation: portrait) {
   .top-mission-pill { display: none; }
-  .bottom-hud-bar { bottom: 6px; width: 96vw; padding: 6px 10px; gap: 4px; border-radius: 12px; }
+  .bottom-hud-bar { bottom: 4px; width: 96vw; padding: 5px 8px; gap: 3px; border-radius: 12px; }
   .telemetry-deck-row { grid-template-columns: 1.2fr 1fr 1fr; gap: 4px; }
   .telemetry-card.sub-pill { display: none; }
-  .bottom-controls-strip { grid-template-columns: 1fr 1fr; gap: 6px; }
-  .bottom-launch-action { grid-column: span 2; padding: 8px; font-size: 0.65rem; }
+  .bottom-controls-strip { grid-template-columns: 1fr 1fr; gap: 5px; }
+  .bottom-launch-action { grid-column: span 2; padding: 7px; font-size: 0.64rem; }
   .evo-mini-meta .evo-mini-badge { max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
 
 @media (orientation: landscape) and (max-height: 520px) {
-  .top-hud-bar { top: 4px; padding: 3px 10px; }
-  .probe-pip-deck { top: 38px; width: 140px; height: 100px; }
-  .bottom-hud-bar { bottom: 4px; padding: 4px 10px; gap: 3px; }
+  .top-hud-bar { top: 4px; padding: 2px 8px; }
+  .probe-pip-deck { top: 34px; width: 135px; height: 95px; }
+  .bottom-hud-bar { bottom: 4px; padding: 3px 8px; gap: 2px; }
   .telemetry-deck-row { grid-template-columns: repeat(6, 1fr); gap: 3px; }
   .telemetry-card .deck-val { font-size: 0.8rem; }
-  .bottom-controls-strip { grid-template-columns: 1fr 1fr 1.2fr; gap: 6px; }
+  .bottom-controls-strip { grid-template-columns: 1fr 1fr 1.2fr; gap: 5px; }
   .bottom-launch-action { padding: 4px 8px; font-size: 0.55rem; }
 }
