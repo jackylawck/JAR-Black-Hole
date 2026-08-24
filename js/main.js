@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
       window.NarrativeManager.init();
     }
   } catch (err) {
-    console.error('模組初始化警告:', err);
+    console.error('模組初始化異常:', err);
   }
 
   // 解鎖音訊 (使用者首次互動)
@@ -43,7 +43,37 @@ document.addEventListener('DOMContentLoaded', () => {
     if (uiPanel) uiPanel.style.opacity = '1';
   });
 
-  // 2. 狀態管理
+  // 2. 手機折疊抽屜與畫布互動
+  const drawerHandle = document.getElementById('drawer-handle');
+  if (drawerHandle && uiPanel) {
+    drawerHandle.addEventListener('click', () => {
+      uiPanel.classList.toggle('collapsed');
+      const isExpanded = !uiPanel.classList.contains('collapsed');
+      drawerHandle.setAttribute('aria-expanded', isExpanded);
+    });
+  }
+
+  const canvasContainer = document.getElementById('canvas-container');
+  if (canvasContainer && uiPanel) {
+    canvasContainer.addEventListener('touchstart', () => {
+      if (!uiPanel.classList.contains('collapsed') && window.innerWidth <= 640) {
+        uiPanel.classList.add('collapsed');
+      }
+    }, { passive: true });
+  }
+
+  // 手機頂部狀態同步函數
+  function syncMobileTop(mass, isco, stageName) {
+    const mobMass = document.getElementById('mob-mass');
+    const mobIsco = document.getElementById('mob-isco');
+    const mobStage = document.getElementById('mob-stage');
+
+    if (mobMass && mass !== undefined) mobMass.textContent = `${mass.toFixed(1)} M☉`;
+    if (mobIsco && isco !== undefined) mobIsco.textContent = `${isco.toFixed(1)} Rs`;
+    if (mobStage && stageName) mobStage.textContent = stageName;
+  }
+
+  // 3. 狀態管理
   let speedFactor = 1.0;
   let massScale = 1.0;
   const clock = typeof THREE !== 'undefined' ? new THREE.Clock() : { getDelta: () => 0.016, getElapsedTime: () => performance.now() * 0.001 };
@@ -58,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 3. 雙模式切換 (探索模式 vs 科研模式)
+  // 4. 雙模式切換 (探索 vs 科研)
   const modeBasicBtn = document.getElementById('mode-basic');
   const modeProBtn = document.getElementById('mode-pro');
 
@@ -91,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
   modeBasicBtn?.addEventListener('click', () => switchMode('basic'));
   modeProBtn?.addEventListener('click', () => switchMode('pro'));
 
-  // 4. 語言切換
+  // 5. 語言切換
   const btnZh = document.getElementById('btn-zh');
   const btnEn = document.getElementById('btn-en');
   btnZh?.addEventListener('click', () => {
@@ -105,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.I18N?.setLang('en');
   });
 
-  // 5. 滑塊互動綁定
+  // 6. 滑塊互動綁定
   const speedRange = document.getElementById('speedRange');
   const speedVal = document.getElementById('speedVal');
   speedRange?.addEventListener('input', (e) => {
@@ -129,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (iscoVal) iscoVal.innerHTML = `${(rawMass * 6.0).toFixed(1)} <small>Rs</small>`;
     if (photonVal) photonVal.innerHTML = `${(rawMass * 3.0).toFixed(1)} <small>Rs</small>`;
 
+    syncMobileTop(rawMass, rawMass * 6.0);
     triggerFlash(massVal);
     if (massValDisplay) triggerFlash(massValDisplay);
 
@@ -137,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 6. 恆星演化時間軸控制器事件綁定
+  // 7. 演化時間軸控制器事件綁定
   const evoSlider = document.getElementById('evolutionSlider');
   evoSlider?.addEventListener('input', (e) => {
     if (typeof window.EvolutionManager !== 'undefined') {
@@ -175,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 7. 發射探測器按鈕
+  // 8. 發射探測器按鈕
   const launchBtn = document.getElementById('launchBtn');
   launchBtn?.addEventListener('click', () => {
     if (typeof window.ProbeManager !== 'undefined') {
@@ -186,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 8. 實時科研終端串流數據更新
+  // 9. 科研模式實時遙測更新
   function updateProTelemetry() {
     if (window.I18N?.currentMode !== 'pro') return;
     const dopplerEl = document.getElementById('telemetryDoppler');
@@ -202,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 9. 動畫主迴圈
+  // 10. 動畫主迴圈
   function animate() {
     requestAnimationFrame(animate);
 
