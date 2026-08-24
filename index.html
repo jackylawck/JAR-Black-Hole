@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'none';
+    script-src 'self' 'unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net;
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' data: https:;
+    font-src 'self';
+    connect-src 'self';
+    manifest-src 'self';
+    worker-src 'self';
+    form-action 'none';
+    base-uri 'self';
+  ">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+
+  <title>J.A.R. 黑洞 3D - Black Hole 3D</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#060c1e">
+
+  <!-- iOS Safari PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="黑洞 3D">
+
+  <!-- Three.js Core & Controls via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <!-- Post-processing -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+</head>
+<body>
+
+  <main id="canvas-container"></main>
+
+  <aside id="ui-panel">
+    <nav class="lang-switcher">
+      <button class="lang-btn active" data-lang="zh-HK">繁中</button>
+      <button class="lang-btn" data-lang="en">EN</button>
+    </nav>
+
+    <header>
+      <h1 data-i18n="title">🌌 J.A.R. 黑洞 3D</h1>
+      <h2 data-i18n="subtitle">JOINT APPLIED RESEARCH • ASTROPHYSICS DIVISION</h2>
+    </header>
+
+    <p data-i18n="desc">實時計算愛因斯坦廣義相對論「重力透鏡」、RK4 測地線光線彎曲與相對論性都卜勒聚束效應。</p>
+
+    <section class="controls-section">
+      <div class="control-group">
+        <label for="speedRange">
+          <span data-i18n="speedLabel">自轉速度 (Rotation Speed)</span>
+          <span id="speedVal" class="val-label">1.0 c</span>
+        </label>
+        <input type="range" id="speedRange" min="0.2" max="3.0" step="0.1" value="1.0">
+      </div>
+
+      <div class="control-group">
+        <label for="massRange">
+          <span data-i18n="massLabel">引力質量 (Gravitational Mass)</span>
+          <span id="massVal" class="val-label">2.5 M☉</span>
+        </label>
+        <input type="range" id="massRange" min="1.0" max="5.0" step="0.2" value="2.5">
+      </div>
+
+      <div class="control-group">
+        <label for="bloomRange">
+          <span data-i18n="bloomLabel">輝光強度 (Bloom Intensity)</span>
+          <span id="bloomVal" class="val-label">1.5</span>
+        </label>
+        <input type="range" id="bloomRange" min="0.0" max="3.0" step="0.1" value="1.5">
+      </div>
+    </section>
+
+    <section class="physics-card">
+      <div class="physics-card-title" data-i18n="statsTitle">🔬 即時相對論數據 (Live Metrics)</div>
+      
+      <div class="stat-row">
+        <span data-i18n="iscoLabel">ISCO 內邊界 (3 Rs):</span>
+        <span id="iscoVal" class="val purple-glow">15.0 Rs</span>
+      </div>
+
+      <div class="stat-row">
+        <span data-i18n="photonRadiusLabel">光子球半徑 (1.5 Rs):</span>
+        <span id="photonVal" class="val blue-glow">7.5 Rs</span>
+      </div>
+
+      <div class="stat-row note" data-i18n="dopplerStatus">
+        都卜勒效應狀態: 左側藍移 (增亮) / 右側紅移 (衰減)
+      </div>
+    </section>
+
+    <button id="launchBtn" class="hud-action-btn" data-i18n="spaghettiBtn">
+      🚀 發射探測器 (意粉化測試)
+    </button>
+  </aside>
+
+  <!-- 模組化載入所有 JS 檔案 -->
+  <script src="js/i18n.js"></script>
+  <script src="js/physics.js"></script>
+  <script src="js/shaders.js"></script>
+  <script src="js/probe.js"></script>
+  <script src="js/scene.js"></script>
+  <script src="js/particles.js"></script>
+  <script src="js/main.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
+      });
+    }
+  </script>
+</body>
+</html>
