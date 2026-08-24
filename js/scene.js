@@ -18,8 +18,9 @@ window.SceneManager = {
     this.scene = new THREE.Scene();
 
     const isPortrait = height > width;
-    this.camera = new THREE.PerspectiveCamera(isPortrait ? 52 : 38, width / height, 0.1, 1500);
-    this.camera.position.set(0, isPortrait ? 4.2 : 2.8, isPortrait ? 22.0 : 16.0);
+    // 🌟 1. 相機視角拉遠並向上抬高，黑洞穩坐畫面正中央（上半部 50%~55%）
+    this.camera = new THREE.PerspectiveCamera(isPortrait ? 58 : 40, width / height, 0.1, 2000);
+    this.camera.position.set(0, isPortrait ? 6.5 : 3.8, isPortrait ? 28.0 : 18.0);
 
     this.renderer = new THREE.WebGLRenderer({ 
       antialias: true, 
@@ -35,26 +36,21 @@ window.SceneManager = {
     container.innerHTML = '';
     container.appendChild(this.renderer.domElement);
 
-    // 🌟 1. 啟用全角度 360 度手勢旋轉（無鎖死視角）
+    // 🌟 2. 核心修復：直接綁定 window，確保 iOS / Android 手勢 100% 觸發 360 度自由旋轉
     if (typeof THREE.OrbitControls !== 'undefined') {
-      this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+      this.controls = new THREE.OrbitControls(this.camera, window);
       this.controls.enableDamping = true;
-      this.controls.dampingFactor = 0.08;
+      this.controls.dampingFactor = 0.06;
       this.controls.enableRotate = true;
       this.controls.enableZoom = true;
       this.controls.enablePan = false;
-      this.controls.rotateSpeed = 0.85;
-      this.controls.zoomSpeed = 1.0;
-      this.controls.maxDistance = 65;
-      this.controls.minDistance = 3.2;
+      this.controls.rotateSpeed = 0.9;
+      this.controls.zoomSpeed = 1.2;
+      this.controls.maxDistance = 80;
+      this.controls.minDistance = 3.0;
 
-      // 手機觸控手勢設定
-      this.controls.touches = {
-        ONE: THREE.TOUCH.ROTATE,
-        TWO: THREE.TOUCH.DOLLY_PAN
-      };
-
-      this.controls.target.set(0, isPortrait ? 0.6 : 0.2, 0);
+      // 🌟 焦點抬高到 Y = 1.5，令星體同黑洞居於屏幕正中，絕不跌落底欄
+      this.controls.target.set(0, isPortrait ? 1.5 : 0.6, 0);
       this.controls.update();
     }
 
@@ -96,7 +92,7 @@ window.SceneManager = {
     const starsGeo = new THREE.BufferGeometry();
     const starPos = new Float32Array(starsCount * 3);
     for (let i = 0; i < starsCount * 3; i++) {
-      starPos[i] = (Math.random() - 0.5) * 500;
+      starPos[i] = (Math.random() - 0.5) * 600;
     }
     starsGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
     const starMesh = new THREE.Points(
@@ -143,10 +139,10 @@ window.SceneManager = {
       this.renderer.render(this.scene, this.camera);
     }
 
-    // 2. 右上角探測器畫中畫 (修正位置與清屏)
+    // 2. 右上角探測器畫中畫
     if (window.ProbeManager?.activeProbe && window.ProbeManager?.probeCamera) {
       const isLandscape = w > h;
-      const pipW = Math.min(180, w * 0.34);
+      const pipW = Math.min(170, w * 0.32);
       const pipH = pipW * 0.72;
       const topOffset = isLandscape ? 38 : 64;
       const pipX = w - pipW - 12;
@@ -179,10 +175,10 @@ window.SceneManager = {
     const isPortrait = height > width;
 
     this.camera.aspect = width / height;
-    this.camera.fov = isPortrait ? 52 : 38;
-    this.camera.position.set(0, isPortrait ? 4.2 : 2.8, isPortrait ? 22.0 : 16.0);
+    this.camera.fov = isPortrait ? 58 : 40;
+    this.camera.position.set(0, isPortrait ? 6.5 : 3.8, isPortrait ? 28.0 : 18.0);
     if (this.controls) {
-      this.controls.target.set(0, isPortrait ? 0.6 : 0.2, 0);
+      this.controls.target.set(0, isPortrait ? 1.5 : 0.6, 0);
       this.controls.update();
     }
     this.camera.updateProjectionMatrix();
