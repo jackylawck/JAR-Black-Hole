@@ -16,9 +16,6 @@ body {
   overscroll-behavior: none;
 }
 
-/* ============================================================
-   1. 深空星雲背景
-   ============================================================ */
 #starfield-bg {
   position: fixed;
   top: 0;
@@ -28,8 +25,8 @@ body {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at 20% 30%, rgba(56, 189, 248, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 70%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 30%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
     radial-gradient(ellipse at 50% 50%, #020617 0%, #01040d 100%);
 }
 
@@ -41,113 +38,32 @@ body {
 }
 
 /* ============================================================
-   📱 手機頂部常駐微型 HUD
+   1. 頂部常駐狀態與實時數據膠囊 (Top HUD)
    ============================================================ */
-.mobile-hud-bar {
-  display: none;
+.top-hud-bar {
   position: fixed;
-  top: env(safe-area-inset-top, 10px);
+  top: env(safe-area-inset-top, 14px);
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
-  width: calc(100% - 24px);
-  max-width: 420px;
-  background: rgba(8, 15, 36, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(56, 189, 248, 0.25);
-  border-radius: 12px;
-  padding: 6px 12px;
+  width: min(940px, 94vw);
+  display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-}
-
-.hud-chip {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.chip-label {
-  font-size: 0.55rem;
-  color: #64748b;
-  text-transform: uppercase;
-}
-
-.chip-val {
-  font-size: 0.72rem;
-  font-weight: 800;
-  font-family: 'SF Mono', monospace;
-  color: #f8fafc;
-}
-
-.cyan-glow { color: #38bdf8; text-shadow: 0 0 8px rgba(56, 189, 248, 0.5); }
-.purple-glow { color: #c084fc; text-shadow: 0 0 8px rgba(192, 132, 252, 0.5); }
-
-/* ============================================================
-   2. 3A 旗艦駕駛艙 HUD 面板 (底部中央)
-   ============================================================ */
-#ui-panel {
-  position: absolute;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-  width: min(680px, 92vw);
-  padding: 18px 22px 16px;
-  background: rgba(6, 12, 30, 0.78);
-  backdrop-filter: blur(32px) saturate(180%);
-  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  gap: 10px;
+  background: rgba(6, 12, 30, 0.75);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid rgba(56, 189, 248, 0.22);
-  border-radius: 20px;
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.9),
-    0 0 40px rgba(56, 189, 248, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 8px 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
 }
 
-.hud-reconfiguring {
-  animation: hudGlitch 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-}
-
-@keyframes hudGlitch {
-  0% { transform: translate(-50%, 0) scale(1); filter: brightness(1); }
-  50% { transform: translate(-50%, 2px) scale(0.98); filter: brightness(2) hue-rotate(90deg); opacity: 0.8; }
-  100% { transform: translate(-50%, 0) scale(1); filter: brightness(1); opacity: 1; }
-}
-
-.drawer-handle-bar {
-  display: none;
-  cursor: pointer;
-  text-align: center;
-  padding: 2px 0 6px;
-}
-
-.handle-pill {
-  width: 36px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 2px;
-  margin: 0 auto 4px;
-}
-
-.handle-title {
-  font-size: 0.62rem;
-  color: #94a3b8;
-  font-weight: 600;
-}
-
-/* ============================================================
-   3. 頂部狀態列、模式切換
-   ============================================================ */
-.hud-top-bar {
+.top-left-controls {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  gap: 10px;
 }
 
 .sys-status {
@@ -204,22 +120,47 @@ body {
   box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
 }
 
-.lang-switcher {
+.telemetry-capsules {
   display: flex;
-  gap: 4px;
+  gap: 14px;
+  align-items: center;
 }
 
+.cap-item {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.cap-lbl {
+  font-size: 0.55rem;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.cap-val {
+  font-family: 'SF Mono', 'Courier New', monospace;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.cap-val small { font-size: 0.55rem; opacity: 0.6; }
+.cyan-val { color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
+.purple-val { color: #c084fc; text-shadow: 0 0 10px rgba(192, 132, 252, 0.4); }
+.white-val { color: #f8fafc; }
+
+.lang-switcher { display: flex; gap: 4px; }
 .lang-btn {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: #94a3b8;
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   font-weight: 600;
   padding: 3px 8px;
   border-radius: 6px;
   cursor: pointer;
 }
-
 .lang-btn.active {
   background: rgba(56, 189, 248, 0.15);
   border-color: #38bdf8;
@@ -227,22 +168,105 @@ body {
 }
 
 /* ============================================================
-   4. 品牌標題與任務條
+   2. 底部常駐快捷列 (Bottom Bar)
    ============================================================ */
+.bottom-quick-bar {
+  position: fixed;
+  bottom: env(safe-area-inset-bottom, 16px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  width: min(540px, 92vw);
+  display: flex;
+  gap: 10px;
+}
+
+.action-btn {
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.secondary-btn {
+  flex: 1;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+}
+
+.secondary-btn:hover {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: #38bdf8;
+}
+
+.primary-btn {
+  flex: 1.4;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0284c7, #7c3aed);
+  border: 1px solid rgba(125, 211, 252, 0.4);
+  color: #ffffff;
+  box-shadow: 0 4px 20px rgba(2, 132, 199, 0.35);
+}
+
+.btn-glow {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* ============================================================
+   3. 可捲起 / 展開的控制抽屜 (Collapsible Drawer)
+   ============================================================ */
+#ui-drawer {
+  position: fixed;
+  bottom: 74px;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  z-index: 15;
+  width: min(640px, 92vw);
+  background: rgba(6, 12, 30, 0.85);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  border-radius: 18px;
+  padding: 16px 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+/* 捲起收起狀態：向下縮回並透明 */
+#ui-drawer.drawer-closed {
+  transform: translateX(-50%) translateY(120%);
+  opacity: 0;
+  pointer-events: none;
+}
+
 .hud-header h1 {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 800;
-  letter-spacing: 0.6px;
   background: linear-gradient(135deg, #ffffff 20%, #7dd3fc 55%, #c084fc 85%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 16px rgba(125, 211, 252, 0.25));
   margin-bottom: 2px;
 }
 
 .hud-header h2 {
   font-size: 0.55rem;
-  font-weight: 600;
   color: #475569;
   text-transform: uppercase;
   letter-spacing: 2px;
@@ -269,63 +293,15 @@ body {
   border-radius: 4px;
 }
 
-.mission-text {
-  font-size: 0.65rem;
-  color: #e2e8f0;
-}
+.mission-text { font-size: 0.65rem; color: #e2e8f0; }
 
-/* ============================================================
-   5. 核心遙測網格 (3-Grid 大字)
-   ============================================================ */
-.telemetry-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.telemetry-box {
-  background: rgba(15, 23, 42, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
-  padding: 6px 8px;
-  text-align: center;
-}
-
-.telemetry-label {
-  font-size: 0.52rem;
-  color: #64748b;
-  text-transform: uppercase;
-  font-weight: 600;
-}
-
-.telemetry-val {
-  font-family: 'SF Mono', 'Courier New', monospace;
-  font-size: 1.25rem;
-  font-weight: 800;
-  line-height: 1.25;
-}
-
-.telemetry-val small {
-  font-size: 0.6rem;
-  font-weight: 500;
-  opacity: 0.6;
-}
-
-.cyan-val { color: #38bdf8; text-shadow: 0 0 14px rgba(56, 189, 248, 0.4); }
-.purple-val { color: #c084fc; text-shadow: 0 0 14px rgba(192, 132, 252, 0.4); }
-.white-val { color: #f8fafc; }
-
-/* ============================================================
-   6. ⚛️ 科研模式專屬終端樣式
-   ============================================================ */
 .pro-terminal-stream {
   display: none;
   background: #020806;
   border: 1px solid rgba(16, 185, 129, 0.25);
   border-radius: 6px;
   padding: 6px 10px;
-  font-family: 'SF Mono', 'Courier New', monospace;
+  font-family: 'SF Mono', monospace;
   font-size: 0.56rem;
   color: #10b981;
   margin-bottom: 8px;
@@ -333,21 +309,15 @@ body {
 
 body.mode-pro .pro-terminal-stream { display: block; }
 body.mode-pro .mission-hud { display: none; }
-body.mode-pro #ui-panel { border-color: rgba(16, 185, 129, 0.4); }
-body.mode-pro .cyan-val { color: #34d399; }
-body.mode-pro .purple-val { color: #fbbf24; }
 
-.pro-terminal-stream .terminal-line {
+.terminal-line {
   display: flex;
   justify-content: space-between;
   border-bottom: 1px dashed rgba(16, 185, 129, 0.15);
   padding: 2px 0;
 }
-.pro-terminal-stream .terminal-line:last-child { border-bottom: none; }
+.terminal-line:last-child { border-bottom: none; }
 
-/* ============================================================
-   7. 恆星演化史詩控制器
-   ============================================================ */
 .evolution-controller {
   margin-bottom: 8px;
   padding: 8px 10px;
@@ -363,12 +333,7 @@ body.mode-pro .purple-val { color: #fbbf24; }
   margin-bottom: 4px;
 }
 
-.evolution-title {
-  font-size: 0.62rem;
-  font-weight: 700;
-  color: #c084fc;
-}
-
+.evolution-title { font-size: 0.62rem; font-weight: 700; color: #c084fc; }
 .evolution-stage-badge {
   font-size: 0.55rem;
   color: #38bdf8;
@@ -386,10 +351,7 @@ body.mode-pro .purple-val { color: #fbbf24; }
   margin-bottom: 6px;
 }
 
-.timeline-bar-wrapper {
-  margin-bottom: 6px;
-}
-
+.timeline-bar-wrapper { margin-bottom: 6px; }
 #evolutionSlider {
   width: 100%;
   height: 3px;
@@ -397,11 +359,7 @@ body.mode-pro .purple-val { color: #fbbf24; }
   border-radius: 2px;
 }
 
-.timeline-actions {
-  display: flex;
-  gap: 6px;
-}
-
+.timeline-actions { display: flex; gap: 6px; }
 .timeline-btn {
   flex: 1;
   background: rgba(255, 255, 255, 0.05);
@@ -413,16 +371,12 @@ body.mode-pro .purple-val { color: #fbbf24; }
   border-radius: 6px;
   cursor: pointer;
 }
-
 .timeline-btn.play-btn {
   background: rgba(56, 189, 248, 0.16);
   border-color: #38bdf8;
   color: #38bdf8;
 }
 
-/* ============================================================
-   8. 雙欄控制網格與滑塊
-   ============================================================ */
 .controls-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -430,24 +384,14 @@ body.mode-pro .purple-val { color: #fbbf24; }
   margin-bottom: 8px;
 }
 
-.control-group {
-  display: flex;
-  flex-direction: column;
-}
-
+.control-group { display: flex; flex-direction: column; }
 .control-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2px;
 }
-
-.control-header label {
-  font-size: 0.62rem;
-  font-weight: 600;
-  color: #94a3b8;
-}
-
+.control-header label { font-size: 0.62rem; font-weight: 600; color: #94a3b8; }
 .val-badge {
   font-family: 'SF Mono', monospace;
   font-size: 0.62rem;
@@ -455,7 +399,6 @@ body.mode-pro .purple-val { color: #fbbf24; }
   padding: 1px 5px;
   border-radius: 4px;
 }
-
 .cyan-badge { color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.2); }
 .purple-badge { color: #c084fc; border: 1px solid rgba(192, 132, 252, 0.2); }
 
@@ -468,7 +411,6 @@ input[type="range"] {
   border-radius: 2px;
   outline: none;
 }
-
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
@@ -482,38 +424,11 @@ input[type="range"]::-webkit-slider-thumb {
   margin-top: -5px;
 }
 
-/* ============================================================
-   9. 發射按鈕與註腳
-   ============================================================ */
-#launchBtn {
-  position: relative;
-  width: 100%;
-  padding: 9px 12px;
-  background: linear-gradient(135deg, #0284c7, #7c3aed);
-  border: 1px solid rgba(125, 211, 252, 0.35);
-  border-radius: 10px;
-  color: #ffffff;
-  font-size: 0.72rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.btn-glow {
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 60%);
-  pointer-events: none;
-}
-
 .hud-footer {
   margin-top: 6px;
   padding-top: 4px;
   border-top: 1px solid rgba(255, 255, 255, 0.04);
 }
-
 .stat-row.note {
   font-size: 0.55rem;
   color: #64748b;
@@ -521,46 +436,7 @@ input[type="range"]::-webkit-slider-thumb {
   text-align: center;
 }
 
-/* ============================================================
-   📱 移動端響應式與抽屜折疊 (Screen < 640px)
-   ============================================================ */
 @media (max-width: 640px) {
-  .mobile-hud-bar {
-    display: flex;
-  }
-
-  .drawer-handle-bar {
-    display: block;
-  }
-
-  #ui-panel {
-    bottom: 0;
-    left: 0;
-    transform: none;
-    width: 100vw;
-    max-width: 100vw;
-    border-radius: 18px 18px 0 0;
-    padding: 8px 14px env(safe-area-inset-bottom, 14px);
-    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-    max-height: 80vh;
-    overflow-y: auto;
-  }
-
-  #ui-panel.collapsed {
-    transform: translateY(calc(100% - 40px));
-    background: rgba(6, 12, 30, 0.88);
-  }
-
-  #ui-panel.collapsed .panel-content {
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .panel-content {
-    transition: opacity 0.2s ease;
-  }
-
-  .controls-grid {
-    grid-template-columns: 1fr;
-  }
+  .telemetry-capsules { display: none; }
+  .controls-grid { grid-template-columns: 1fr; }
 }
