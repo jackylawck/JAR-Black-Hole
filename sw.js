@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jar-black-hole-v10.0';
+const CACHE_NAME = 'jar-black-hole-v11.0';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -43,7 +43,7 @@ self.addEventListener('install', (e) => {
   self.skipWaiting();
 });
 
-// 啟用階段：清除所有舊版本快取 (包括 v1, v2, v3)
+// 啟用階段：清除所有舊版本快取 (包括 v1 至 v10.0)
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -60,7 +60,7 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
-// 請求攔截：Network-First (網路優先)，確保隨時載入最新代碼
+// 請求攔截：Network-First (網路優先)
 self.addEventListener('fetch', (e) => {
   e.respondWith(
     fetch(e.request)
