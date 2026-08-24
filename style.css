@@ -235,18 +235,19 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: linear-gradient(180deg, rgba(8, 15, 38, 0.72) 0%, rgba(4, 8, 20, 0.92) 100%);
+  background: linear-gradient(180deg, rgba(8, 15, 38, 0.78) 0%, rgba(4, 8, 20, 0.94) 100%);
   backdrop-filter: blur(28px) saturate(190%);
   -webkit-backdrop-filter: blur(28px) saturate(190%);
   border: 1px solid rgba(56, 189, 248, 0.25);
   border-top: 1px solid rgba(125, 211, 252, 0.5);
-  border-radius: 16px 16px 12px 12px;
-  padding: 12px 18px 10px;
+  border-radius: 16px;
+  padding: 10px 18px 10px;
   box-shadow:
     0 -15px 40px rgba(0, 0, 0, 0.85),
     0 0 35px rgba(56, 189, 248, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.15),
     inset 0 0 20px rgba(56, 189, 248, 0.04);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease, padding 0.3s ease;
 }
 
 .hud-cockpit::before {
@@ -264,8 +265,59 @@ body {
   border-radius: inherit;
 }
 
+/* 🌟 智能捲起模式 (Telemetry-Only Mode)：只留狀態與實時數據 */
+.hud-cockpit.hud-collapsed {
+  transform: translateX(-50%) perspective(1000px) rotateX(0deg);
+  background: rgba(4, 8, 20, 0.82);
+  gap: 6px;
+  padding-bottom: 8px;
+}
+
+.hud-cockpit.hud-collapsed .collapsible-section {
+  display: none !important;
+}
+
+.hud-cockpit.hud-collapsed .telemetry-deck {
+  margin-bottom: 0;
+}
+
 /* ============================================================
-   3. 頂部狀態列
+   3. 捲起拉手條
+   ============================================================ */
+.cockpit-toggle-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  padding: 2px 0 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 4px;
+}
+
+.toggle-pill {
+  width: 36px;
+  height: 4px;
+  background: rgba(56, 189, 248, 0.4);
+  border-radius: 2px;
+  margin-bottom: 2px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.cockpit-toggle-bar:hover .toggle-pill {
+  background: #38bdf8;
+  transform: scaleX(1.2);
+}
+
+.toggle-text {
+  font-size: 0.52rem;
+  font-family: 'SF Mono', monospace;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+}
+
+/* ============================================================
+   4. 頂部狀態列
    ============================================================ */
 .hud-status-strip {
   display: flex;
@@ -364,7 +416,7 @@ body {
 }
 
 /* ============================================================
-   4. 核心階層數據架構
+   5. 核心階層數據架構
    ============================================================ */
 .telemetry-deck {
   display: grid;
@@ -436,7 +488,7 @@ body {
 }
 
 /* ============================================================
-   5. ⚛️ 科研模式專屬：多行動態滾動測地線串流日誌
+   6. ⚛️ 科研模式專屬：多行動態滾動測地線串流日誌
    ============================================================ */
 .pro-terminal-stream-box {
   display: none;
@@ -470,7 +522,7 @@ body.mode-pro .pro-terminal-stream-box {
 }
 
 /* ============================================================
-   6. 恆星演化史詩控制器
+   7. 恆星演化史詩控制器
    ============================================================ */
 .evolution-deck {
   padding: 6px 12px;
@@ -541,7 +593,7 @@ body.mode-pro .pro-terminal-stream-box {
 }
 
 /* ============================================================
-   7. 底部指令區與狀態機
+   8. 底部指令區與狀態機
    ============================================================ */
 .command-deck {
   display: grid;
@@ -692,13 +744,13 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 /* ============================================================
-   8. 手機直屏響應
+   9. 手機直屏響應
    ============================================================ */
 @media (max-width: 640px) {
   .hud-cockpit {
     bottom: 6px;
     width: 96vw;
-    padding: 10px 12px;
+    padding: 8px 10px;
     gap: 6px;
     transform: translateX(-50%) perspective(600px) rotateX(2deg);
   }
