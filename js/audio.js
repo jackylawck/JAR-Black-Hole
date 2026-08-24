@@ -1,301 +1,67 @@
-const AudioManager = {
+window.AudioManager = {
   ctx: null,
   isInitialized: false,
-  isMuted: false,
-
-  // 1. 空間與總線節點
-  panner: null,
-  masterGain: null,
-  proximityGain: null,
-
-  // 2. 時空引力次低音與 LFO 呼吸
   humOsc: null,
   humGain: null,
-  humLFO: null,
-
-  // 3. 吸積盤摩擦等離子噪聲
-  noiseNode: null,
-  noiseFilter: null,
-  noiseGain: null,
-
-  // 4. 動態配樂情緒狀態機 (Ambient Chord Pad + 動態濾波)
-  padOscs: [],
-  padFilter: null,
-  padGain: null,
-  currentState: 'idle',
-  isSilenceActive: false,
+  filterNode: null,
+  distortionNode: null,
+  pannerNode: null,
+  currentState: 'STABLE',
 
   init() {
     if (this.isInitialized) return;
-
     const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+
     this.ctx = new AudioContext();
 
-    // 總線增益控制 (防爆音安全上限)
-    this.masterGain = this.ctx.createGain();
-    this.masterGain.gain.setValueAtTime(0.85, this.ctx.currentTime);
-    this.masterGain.connect(this.ctx.destination);
-
-    // 距離壓迫感調製節點 (Proximity Weight)
-    this.proximityGain = this.ctx.createGain();
-    this.proximityGain.gain.setValueAtTime(1.0, this.ctx.currentTime);
-    this.proximityGain.connect(this.masterGain);
-
-    // HRTF 3D 空間定位 (黑洞中心: 0, 0, 0)
-    this.panner = this.ctx.createPanner();
-    this.panner.panningModel = 'HRTF';
-    this.panner.distanceModel = 'inverse';
-    this.panner.refDistance = 5;
-    this.panner.maxDistance = 120;
-    this.panner.rolloffFactor = 1.2;
-    this.panner.positionX.setValueAtTime(0, this.ctx.currentTime);
-    this.panner.positionY.setValueAtTime(0, this.ctx.currentTime);
-    this.panner.positionZ.setValueAtTime(0, this.ctx.currentTime);
-    this.panner.connect(this.proximityGain);
-
-    // -------------------------------------------------------------
-    // 音軌 A: 42Hz 時空引力次低音 + 0.25Hz LFO 呼吸震顫
-    // -------------------------------------------------------------
+    // 1. 引力低頻振盪器
     this.humOsc = this.ctx.createOscillator();
-    this.humOsc.type = 'sine';
+    this.humOsc.type = 'sawtooth';
     this.humOsc.frequency.setValueAtTime(42, this.ctx.currentTime);
 
+    // 2. 共振低通濾波器
+    this.filterNode = this.ctx.createBiquadFilter();
+    this.filterNode.type = 'lowpass';
+    this.filterNode.frequency.setValueAtTime(180, this.ctx.currentTime);
+    this.filterNode.Q.setValueAtTime(4.0, this.ctx.currentTime);
+
+    // 3. 非線性波形整形器 (時空失真)
+    this.distortionNode = this.ctx.createWaveShaper();
+    this.distortionNode.curve = this.makeDistortionCurve(0);
+    this.distortionNode.oversample = '2x';
+
+    // 4. 增益與空間音效 Panner
     this.humGain = this.ctx.createGain();
-    this.humGain.gain.setValueAtTime(0.045, this.ctx.currentTime);
+    this.humGain.gain.setValueAtTime(0.12, this.ctx.currentTime);
 
-    this.humLFO = this.ctx.createOscillator();
-    this.humLFO.frequency.setValueAtTime(0.25, this.ctx.currentTime); // 4 秒引力波動週期
-    const lfoGain = this.ctx.createGain();
-    lfoGain.gain.setValueAtTime(2.5, this.ctx.currentTime);
-    this.humLFO.connect(lfoGain);
-    lfoGain.connect(this.humOsc.frequency);
-
-    this.humOsc.connect(this.humGain);
-    this.humGain.connect(this.panner);
-
-    this.humOsc.start();
-    this.humLFO.start();
-
-    // -------------------------------------------------------------
-    // 音軌 B: 吸積盤高能摩擦噪聲 + 帶通濾波動態掃描
-    // -------------------------------------------------------------
-    const bufferSize = this.ctx.sampleRate * 2;
-    const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-    const output = noiseBuffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      output[i] = Math.random() * 2 - 1;
+    if (this.ctx.createPanner) {
+      this.pannerNode = this.ctx.createPanner();
+      this.pannerNode.panningModel = 'HRTF';
+      this.pannerNode.distanceModel = 'inverse';
+      this.pannerNode.refDistance = 5;
+      this.pannerNode.maxDistance = 100;
+      this.pannerNode.rolloffFactor = 1.2;
     }
 
-    this.noiseNode = this.ctx.createBufferSource();
-    this.noiseNode.buffer = noiseBuffer;
-    this.noiseNode.loop = true;
+    // 串接音訊管線
+    this.humOsc.connect(this.distortionNode);
+    this.distortionNode.connect(this.filterNode);
+    this.filterNode.connect(this.humGain);
 
-    this.noiseFilter = this.ctx.createBiquadFilter();
-    this.noiseFilter.type = 'bandpass';
-    this.noiseFilter.frequency.setValueAtTime(450, this.ctx.currentTime);
-    this.noiseFilter.Q.setValueAtTime(2.0, this.ctx.currentTime);
+    if (this.pannerNode) {
+      this.humGain.connect(this.pannerNode);
+      this.pannerNode.connect(this.ctx.destination);
+    } else {
+      this.humGain.connect(this.ctx.destination);
+    }
 
-    this.noiseGain = this.ctx.createGain();
-    this.noiseGain.gain.setValueAtTime(0.015, this.ctx.currentTime);
-
-    this.noiseNode.connect(this.noiseFilter);
-    this.noiseFilter.connect(this.noiseGain);
-    this.noiseGain.connect(this.panner);
-    this.noiseNode.start();
-
-    // -------------------------------------------------------------
-    // 音軌 C: Hans Zimmer 風格微失諧 Ambient Pad (D 小調 + 動態濾波)
-    // -------------------------------------------------------------
-    this.padFilter = this.ctx.createBiquadFilter();
-    this.padFilter.type = 'lowpass';
-    this.padFilter.frequency.setValueAtTime(400, this.ctx.currentTime);
-
-    this.padGain = this.ctx.createGain();
-    this.padGain.gain.setValueAtTime(0.025, this.ctx.currentTime);
-
-    const freqs = [73.42, 110.00, 146.83, 220.00]; // D2, A2, D3, A3
-    freqs.forEach((f, idx) => {
-      const osc = this.ctx.createOscillator();
-      osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
-      osc.frequency.setValueAtTime(f + (Math.random() - 0.5) * 0.8, this.ctx.currentTime);
-
-      const oscGain = this.ctx.createGain();
-      oscGain.gain.setValueAtTime(0.25, this.ctx.currentTime);
-
-      osc.connect(oscGain);
-      oscGain.connect(this.padFilter);
-      osc.start();
-      this.padOscs.push(osc);
-    });
-
-    this.padFilter.connect(this.padGain);
-    this.padGain.connect(this.proximityGain);
-
-    // 瀏覽器自動播放政策安全解鎖 (User Gesture Resume)
-    const unlockAudio = () => {
-      if (this.ctx && this.ctx.state === 'suspended') {
-        this.ctx.resume();
-      }
-    };
-    window.addEventListener('click', unlockAudio, { once: true });
-    window.addEventListener('touchstart', unlockAudio, { once: true });
-
+    this.humOsc.start();
     this.isInitialized = true;
   },
 
-  // UI 滑塊高頻微點擊聲 (800Hz 極短脈衝)
-  playUITick() {
-    if (!this.isInitialized || this.isMuted) return;
-    try {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(800, this.ctx.currentTime);
-      gain.gain.setValueAtTime(0.03, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.04);
-      osc.connect(gain);
-      gain.connect(this.masterGain);
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.04);
-    } catch (e) {}
-  },
-
-  // 滑塊引力波脈衝 (Gravity Pulse)
-  triggerGravityPulse() {
-    if (!this.isInitialized || this.isMuted || this.isSilenceActive) return;
-    this.humGain.gain.cancelScheduledValues(this.ctx.currentTime);
-    this.humGain.gain.setTargetAtTime(0.085, this.ctx.currentTime, 0.015);
-    this.humGain.gain.setTargetAtTime(0.045, this.ctx.currentTime + 0.08, 0.25);
-  },
-
-  // 動態配樂情緒狀態機
-  setMusicState(state) {
-    if (!this.isInitialized || this.isMuted || this.currentState === state || this.isSilenceActive) return;
-    this.currentState = state;
-
-    switch (state) {
-      case 'idle':
-        this.padFilter.frequency.setTargetAtTime(400, this.ctx.currentTime, 0.5);
-        this.padGain.gain.setTargetAtTime(0.025, this.ctx.currentTime, 0.5);
-        break;
-
-      case 'launch':
-        this.padFilter.frequency.setTargetAtTime(750, this.ctx.currentTime, 0.3);
-        this.padGain.gain.setTargetAtTime(0.04, this.ctx.currentTime, 0.3);
-        break;
-
-      case 'spaghettification':
-        this.padFilter.frequency.setTargetAtTime(1600, this.ctx.currentTime, 0.1);
-        this.padGain.gain.setTargetAtTime(0.055, this.ctx.currentTime, 0.1);
-        break;
-    }
-  },
-
-  // 聽覺距離壓迫感與方位每幀同步
-  updateListenerAndParams(camera, massScale, speedFactor) {
-    if (!this.isInitialized || this.isMuted || this.isSilenceActive) return;
-
-    if (this.ctx.listener.positionX) {
-      this.ctx.listener.positionX.setValueAtTime(camera.position.x, this.ctx.currentTime);
-      this.ctx.listener.positionY.setValueAtTime(camera.position.y, this.ctx.currentTime);
-      this.ctx.listener.positionZ.setValueAtTime(camera.position.z, this.ctx.currentTime);
-    }
-
-    // 視距越近，低頻壓迫感與總音量調製增強
-    const dist = camera.position.length();
-    const proxScale = Math.min(2.0, Math.max(0.6, 25.0 / dist));
-    this.proximityGain.gain.setTargetAtTime(proxScale, this.ctx.currentTime, 0.1);
-
-    const targetFreq = Math.max(20, 50 - massScale * 7.5);
-    this.humOsc.frequency.setTargetAtTime(targetFreq, this.ctx.currentTime, 0.15);
-
-    const filterFreq = 300 + speedFactor * 400;
-    this.noiseFilter.frequency.setTargetAtTime(filterFreq, this.ctx.currentTime, 0.15);
-
-    const noiseVol = 0.01 + (speedFactor / 3.0) * 0.025;
-    this.noiseGain.gain.setTargetAtTime(noiseVol, this.ctx.currentTime, 0.15);
-  },
-
-  // 探測器發射脈衝音
-  playLaunch(position) {
-    if (!this.isInitialized || this.isMuted || this.isSilenceActive) return;
-    this.setMusicState('launch');
-
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    const panner = this.ctx.createPanner();
-
-    if (position) {
-      panner.positionX.setValueAtTime(position.x, this.ctx.currentTime);
-      panner.positionY.setValueAtTime(position.y, this.ctx.currentTime);
-      panner.positionZ.setValueAtTime(position.z, this.ctx.currentTime);
-    }
-
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(920, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.4);
-
-    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.4);
-
-    osc.connect(gain);
-    gain.connect(panner);
-    panner.connect(this.masterGain);
-
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.4);
-  },
-
-  // 意粉化撕裂失真滑音 + 0.5s 深淵留白 (The Void of Silence)
-  playSpaghettification() {
-    if (!this.isInitialized || this.isMuted) return;
-    this.setMusicState('spaghettification');
-
-    const osc1 = this.ctx.createOscillator();
-    const osc2 = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    const dist = this.ctx.createWaveShaper();
-
-    dist.curve = this.makeDistortionCurve(25);
-    dist.oversample = '4x';
-
-    osc1.type = 'sawtooth';
-    osc1.frequency.setValueAtTime(180, this.ctx.currentTime);
-    osc1.frequency.exponentialRampToValueAtTime(28, this.ctx.currentTime + 0.7);
-
-    osc2.type = 'square';
-    osc2.frequency.setValueAtTime(270, this.ctx.currentTime);
-    osc2.frequency.exponentialRampToValueAtTime(32, this.ctx.currentTime + 0.7);
-
-    gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.7);
-
-    osc1.connect(dist);
-    osc2.connect(dist);
-    dist.connect(gain);
-    gain.connect(this.panner);
-
-    osc1.start();
-    osc2.start();
-    osc1.stop(this.ctx.currentTime + 0.7);
-    osc2.stop(this.ctx.currentTime + 0.7);
-
-    // 0.7 秒撕裂結束後，觸發 0.5 秒全頻深淵留白
-    setTimeout(() => {
-      this.isSilenceActive = true;
-      this.masterGain.gain.setTargetAtTime(0.0, this.ctx.currentTime, 0.05);
-
-      setTimeout(() => {
-        // 0.5 秒後環境音柔和漸入 (Fade in)
-        this.masterGain.gain.setTargetAtTime(0.85, this.ctx.currentTime, 0.4);
-        this.isSilenceActive = false;
-        this.setMusicState('idle');
-      }, 500);
-    }, 700);
-  },
-
   makeDistortionCurve(amount) {
-    const k = amount;
+    const k = typeof amount === 'number' ? amount : 50;
     const n_samples = 44100;
     const curve = new Float32Array(n_samples);
     const deg = Math.PI / 180;
@@ -304,5 +70,89 @@ const AudioManager = {
       curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
     }
     return curve;
+  },
+
+  updateCurvatureAudio(state, massScale, speedFactor) {
+    if (!this.isInitialized || !this.ctx) return;
+    this.currentState = state;
+    const now = this.ctx.currentTime;
+
+    const baseFreq = 38 + massScale * 14 + speedFactor * 10;
+    this.humOsc.frequency.setTargetAtTime(baseFreq, now, 0.1);
+
+    if (state === 'CRITICAL') {
+      this.filterNode.frequency.setTargetAtTime(850, now, 0.08);
+      this.filterNode.Q.setTargetAtTime(12.0, now, 0.08);
+      this.distortionNode.curve = this.makeDistortionCurve(110);
+      this.humGain.gain.setTargetAtTime(0.22, now, 0.08);
+    } else if (state === 'WARNING') {
+      this.filterNode.frequency.setTargetAtTime(360, now, 0.15);
+      this.filterNode.Q.setTargetAtTime(6.0, now, 0.15);
+      this.distortionNode.curve = this.makeDistortionCurve(35);
+      this.humGain.gain.setTargetAtTime(0.16, now, 0.15);
+    } else {
+      this.filterNode.frequency.setTargetAtTime(160, now, 0.2);
+      this.filterNode.Q.setTargetAtTime(3.0, now, 0.2);
+      this.distortionNode.curve = this.makeDistortionCurve(0);
+      this.humGain.gain.setTargetAtTime(0.10, now, 0.2);
+    }
+  },
+
+  // 🌟 四維類比電路全參數非線性動態抖動 (Frequency + Resonance Q + Distortion + Gain)
+  applyAnalogJitter(elapsedTime) {
+    if (!this.isInitialized || !this.ctx) return;
+    const now = this.ctx.currentTime;
+
+    if (this.currentState === 'CRITICAL') {
+      const freqJitter = Math.sin(elapsedTime * 16.0) * 14.0 + (Math.random() - 0.5) * 8.0;
+      this.filterNode.frequency.setValueAtTime(Math.max(250, 850 + freqJitter), now);
+
+      const qJitter = Math.sin(elapsedTime * 9.0) * 1.5;
+      this.filterNode.Q.setValueAtTime(12.0 + qJitter, now);
+
+      const gainJitter = Math.sin(elapsedTime * 22.0) * 0.02 + (Math.random() - 0.5) * 0.01;
+      this.humGain.gain.setValueAtTime(Math.max(0.12, 0.22 + gainJitter), now);
+
+      if (Math.random() < 0.08) {
+        this.distortionNode.curve = this.makeDistortionCurve(110 + (Math.random() - 0.5) * 20);
+      }
+    } else if (this.currentState === 'WARNING') {
+      const freqJitter = Math.sin(elapsedTime * 7.0) * 5.0;
+      const qJitter = Math.sin(elapsedTime * 4.0) * 0.6;
+      const gainJitter = Math.sin(elapsedTime * 11.0) * 0.01;
+
+      this.filterNode.frequency.setValueAtTime(360 + freqJitter, now);
+      this.filterNode.Q.setValueAtTime(6.0 + qJitter, now);
+      this.humGain.gain.setValueAtTime(0.16 + gainJitter, now);
+    } else {
+      const subtleJitter = Math.sin(elapsedTime * 2.0) * 1.5;
+      this.filterNode.frequency.setValueAtTime(160 + subtleJitter, now);
+      this.filterNode.Q.setValueAtTime(3.0, now);
+      this.humGain.gain.setValueAtTime(0.10, now);
+    }
+  },
+
+  updateListenerAndParams(camera, massScale, speedFactor) {
+    if (!this.isInitialized || !this.ctx || !camera) return;
+    if (this.ctx.listener && this.ctx.listener.positionX) {
+      this.ctx.listener.positionX.setValueAtTime(camera.position.x, this.ctx.currentTime);
+      this.ctx.listener.positionY.setValueAtTime(camera.position.y, this.ctx.currentTime);
+      this.ctx.listener.positionZ.setValueAtTime(camera.position.z, this.ctx.currentTime);
+    }
+  },
+
+  playUITick() {
+    if (!this.isInitialized || !this.ctx) return;
+    const osc = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(400, this.ctx.currentTime + 0.04);
+    g.gain.setValueAtTime(0.08, this.ctx.currentTime);
+    g.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.04);
+    osc.connect(g);
+    g.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.04);
   }
 };
