@@ -18,9 +18,10 @@ window.SceneManager = {
     this.scene = new THREE.Scene();
 
     const isPortrait = height > width;
-    // 🌟 相機位置往上提 (Y = 8.0, Z = 32.0)，黑洞重心自動落在螢幕正中
-    this.camera = new THREE.PerspectiveCamera(isPortrait ? 58 : 40, width / height, 0.1, 2500);
-    this.camera.position.set(0, isPortrait ? 8.0 : 4.5, isPortrait ? 32.0 : 20.0);
+    
+    // 🌟 1. 超大特寫：相機推近、FOV 放大，讓黑洞穩居螢幕正中黃金分割位
+    this.camera = new THREE.PerspectiveCamera(isPortrait ? 65 : 45, width / height, 0.1, 1500);
+    this.camera.position.set(0, isPortrait ? 2.5 : 1.8, isPortrait ? 15.0 : 12.0);
 
     this.renderer = new THREE.WebGLRenderer({ 
       antialias: true, 
@@ -36,7 +37,7 @@ window.SceneManager = {
     container.innerHTML = '';
     container.appendChild(this.renderer.domElement);
 
-    // 🌟 核心：綁定 renderer.domElement 並設置觸控處理
+    // 🌟 2. 雙重手勢保險：啟用 OrbitControls 並掛載全域 Touch 事件監聽
     if (typeof THREE.OrbitControls !== 'undefined') {
       this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
       this.controls.enableDamping = true;
@@ -44,23 +45,63 @@ window.SceneManager = {
       this.controls.enableRotate = true;
       this.controls.enableZoom = true;
       this.controls.enablePan = false;
-      this.controls.rotateSpeed = 0.9;
+      this.controls.rotateSpeed = 1.0;
       this.controls.zoomSpeed = 1.2;
-      this.controls.maxDistance = 90;
-      this.controls.minDistance = 3.5;
+      this.controls.maxDistance = 60;
+      this.controls.minDistance = 3.0;
 
-      // 🌟 焦點設定在 Y = 2.5，保證整個黑洞與吸積盤在直屏下完美居中偏上
-      this.controls.target.set(0, isPortrait ? 2.5 : 1.0, 0);
+      // 焦點往上推 1.5，將黑洞從底欄拔起，完美浮在畫面正中
+      this.controls.target.set(0, isPortrait ? 1.5 : 0.8, 0);
       this.controls.update();
     }
 
-    // 1. 黑洞本體 (事件視界)
+    // 🌟 3. 原生手勢兜底（防止任何 iOS Safari 阻斷）
+    let isTouching = false;
+    let prevTouchX = 0;
+    let prevTouchY = 0;
+
+    const onTouchStart = (e) => {
+      if (e.touches.length === 1) {
+        isTouching = true;
+        prevTouchX = e.touches[0].pageX;
+        prevTouchY = e.touches[0].pageY;
+      }
+    };
+
+    const onTouchMove = (e) => {
+      if (!isTouching || e.touches.length !== 1) return;
+      const deltaX = e.touches[0].pageX - prevTouchX;
+      const deltaY = e.touches[0].pageY - prevTouchY;
+      prevTouchX = e.touches[0].pageX;
+      prevTouchY = e.touches[0].pageY;
+
+      // 手動驅動相機極座標旋轉
+      if (this.controls) {
+        const rotSpeed = 0.005;
+        const spherical = new THREE.Spherical();
+        const offset = new THREE.Vector3().copy(this.camera.position).sub(this.controls.target);
+        spherical.setFromVector3(offset);
+        spherical.theta -= deltaX * rotSpeed;
+        spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi - deltaY * rotSpeed));
+        offset.setFromSpherical(spherical);
+        this.camera.position.copy(this.controls.target).add(offset);
+        this.camera.lookAt(this.controls.target);
+      }
+    };
+
+    const onTouchEnd = () => { isTouching = false; };
+
+    window.addEventListener('touchstart', onTouchStart, { passive: false });
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd, { passive: false });
+
+    // 4. 黑洞事件視界
     const bhGeo = new THREE.SphereGeometry(2.0, 48, 48);
     const bhMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
     this.blackHoleSphere = new THREE.Mesh(bhGeo, bhMat);
     this.scene.add(this.blackHoleSphere);
 
-    // 2. 光子球高溫光環
+    // 5. 光子球高溫光環
     const ringGeo = new THREE.RingGeometry(2.01, 2.3, 96);
     const ringMat = new THREE.MeshBasicMaterial({
       color: 0xffbb44,
@@ -73,7 +114,7 @@ window.SceneManager = {
     this.photonRing = new THREE.Mesh(ringGeo, ringMat);
     this.scene.add(this.photonRing);
 
-    // 3. 垂直透鏡光環
+    // 6. 垂直透鏡光環
     const lensGeo = new THREE.RingGeometry(2.05, 2.45, 96);
     const lensMat = new THREE.MeshBasicMaterial({
       color: 0xff8811,
@@ -87,7 +128,7 @@ window.SceneManager = {
     this.lensingRingTop.rotation.y = Math.PI / 2;
     this.scene.add(this.lensingRingTop);
 
-    // 4. 背景星空
+    // 7. 背景星空
     const starsCount = 2000;
     const starsGeo = new THREE.BufferGeometry();
     const starPos = new Float32Array(starsCount * 3);
@@ -101,7 +142,7 @@ window.SceneManager = {
     );
     this.scene.add(starMesh);
 
-    // 5. 後處理泛光
+    // 8. 後處理泛光
     try {
       if (typeof THREE.EffectComposer !== 'undefined' && typeof THREE.UnrealBloomPass !== 'undefined') {
         const renderScene = new THREE.RenderPass(this.scene, this.camera);
@@ -173,10 +214,10 @@ window.SceneManager = {
     const isPortrait = height > width;
 
     this.camera.aspect = width / height;
-    this.camera.fov = isPortrait ? 58 : 40;
-    this.camera.position.set(0, isPortrait ? 8.0 : 4.5, isPortrait ? 32.0 : 20.0);
+    this.camera.fov = isPortrait ? 65 : 45;
+    this.camera.position.set(0, isPortrait ? 2.5 : 1.8, isPortrait ? 15.0 : 12.0);
     if (this.controls) {
-      this.controls.target.set(0, isPortrait ? 2.5 : 1.0, 0);
+      this.controls.target.set(0, isPortrait ? 1.5 : 0.8, 0);
       this.controls.update();
     }
     this.camera.updateProjectionMatrix();
