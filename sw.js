@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jar-black-hole-v12.0';
+const CACHE_NAME = 'jar-black-hole-v12.2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
