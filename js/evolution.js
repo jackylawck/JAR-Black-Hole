@@ -1,10 +1,9 @@
 window.EvolutionManager = {
   scene: null,
-  progress: 1.0, // 0: 原恆星, 0.33: 藍超巨星, 0.66: 超新星大爆炸, 1.0: 黑洞
+  progress: 1.0,
   isPlaying: false,
   playSpeed: 0.08,
 
-  // 演化視覺實體
   protoStarMesh: null,
   supernovaParticles: null,
   supernovaCount: 3000,
@@ -22,8 +21,8 @@ window.EvolutionManager = {
     if (!scene) return;
     this.scene = scene;
 
-    // 1. 原恆星 / 超巨星實體球
-    const starGeo = new THREE.SphereGeometry(3.5, 32, 32);
+    // 🌟 調配合適半徑 (半徑由 3.5 調整為 2.2，避免巨星球體遮蔽整個螢幕)
+    const starGeo = new THREE.SphereGeometry(2.2, 32, 32);
     const starMat = new THREE.MeshBasicMaterial({
       color: 0x60a5fa,
       transparent: true,
@@ -32,7 +31,7 @@ window.EvolutionManager = {
     this.protoStarMesh = new THREE.Mesh(starGeo, starMat);
     this.scene.add(this.protoStarMesh);
 
-    // 2. 超新星爆炸噴流粒子系統
+    // 超新星爆發粒子
     this.supernovaGeo = new THREE.BufferGeometry();
     const positions = new Float32Array(this.supernovaCount * 3);
     const colors = new Float32Array(this.supernovaCount * 3);
@@ -43,7 +42,6 @@ window.EvolutionManager = {
       positions[i * 3 + 1] = 0;
       positions[i * 3 + 2] = 0;
 
-      // 等方性向外爆發速度向量
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(Math.random() * 2 - 1);
       const speed = 4.0 + Math.random() * 16.0;
@@ -105,7 +103,6 @@ window.EvolutionManager = {
   },
 
   applyStageVisuals(p) {
-    // 🌟 核心保證：只操作模型網格與材質透明度，絕不干涉使用者 360 度相機
     const stageText = document.getElementById('evolutionStageText');
     const stageDesc = document.getElementById('evolutionStageDesc');
 
@@ -117,9 +114,9 @@ window.EvolutionManager = {
     if (stageText) stageText.textContent = currentStage.name;
     if (stageDesc) stageDesc.textContent = currentStage.desc;
 
-    // 1. 前期：原恆星 / 藍超巨星
+    // 1. 原恆星 / 藍超巨星
     if (p < 0.6) {
-      const starScale = p < 0.3 ? 1.0 + p * 3.0 : 2.0 + (p - 0.3) * 4.0;
+      const starScale = p < 0.3 ? 0.8 + p * 2.0 : 1.4 + (p - 0.3) * 2.2;
       if (this.protoStarMesh) {
         this.protoStarMesh.scale.setScalar(starScale);
         this.protoStarMesh.material.opacity = (1.0 - p / 0.6) * 0.95;
@@ -131,7 +128,7 @@ window.EvolutionManager = {
       if (window.ParticleManager?.particleSystem) window.ParticleManager.particleSystem.visible = false;
       if (this.supernovaParticles) this.supernovaParticles.material.opacity = 0.0;
     }
-    // 2. 中期：超新星大爆炸爆發
+    // 2. 超新星大爆炸
     else if (p >= 0.6 && p < 0.85) {
       const snProgress = (p - 0.6) / 0.25;
       if (this.protoStarMesh) this.protoStarMesh.material.opacity = Math.max(0.0, 1.0 - snProgress * 3.0);
@@ -152,7 +149,7 @@ window.EvolutionManager = {
       if (window.SceneManager?.lensingRingTop) window.SceneManager.lensingRingTop.visible = false;
       if (window.ParticleManager?.particleSystem) window.ParticleManager.particleSystem.visible = false;
     }
-    // 3. 後期：核心塌縮成黑洞與吸積盤旋渦
+    // 3. 黑洞奇異點與吸積盤
     else {
       const bhAppear = (p - 0.85) / 0.15;
       if (this.protoStarMesh) this.protoStarMesh.material.opacity = 0.0;
