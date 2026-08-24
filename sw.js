@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jar-black-hole-v3';
+const CACHE_NAME = 'jar-black-hole-v10.0';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -27,7 +27,7 @@ const ASSETS_TO_CACHE = [
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/postprocessing/UnrealBloomPass.js'
 ];
 
-// 安裝階段：容錯快取
+// 安裝階段：快取資源
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
@@ -35,7 +35,7 @@ self.addEventListener('install', (e) => {
         try {
           await cache.add(asset);
         } catch (err) {
-          console.warn(`[SW] 快取跳過/失敗: ${asset}`, err);
+          console.warn(`[SW] 快取跳過: ${asset}`, err);
         }
       }
     })
@@ -43,14 +43,14 @@ self.addEventListener('install', (e) => {
   self.skipWaiting();
 });
 
-// 啟用階段：清除舊快取 (強制清空 v1 及 v2)
+// 啟用階段：清除所有舊版本快取 (包括 v1, v2, v3)
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
-            console.log(`[SW] 清理過期快取: ${key}`);
+            console.log(`[SW] 清理舊快取: ${key}`);
             return caches.delete(key);
           }
         })
@@ -60,16 +60,26 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
-// 請求攔截：Cache First 策略
+// 請求攔截：Network-First (網路優先)，確保隨時載入最新代碼
 self.addEventListener('fetch', (e) => {
   e.respondWith(
-    caches.match(e.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(e.request).catch(() => {
-        return caches.match('./index.html');
-      });
-    })
+    fetch(e.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && e.request.method === 'GET') {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(e.request, responseClone);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(e.request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          return caches.match('./index.html');
+        });
+      })
   );
 });
