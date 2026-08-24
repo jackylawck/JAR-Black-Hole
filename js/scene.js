@@ -35,26 +35,30 @@ window.SceneManager = {
     container.innerHTML = '';
     container.appendChild(this.renderer.domElement);
 
-    // 🌟 1. 啟用 360 度手勢旋轉控制 (OrbitControls 綁定 renderer.domElement)
+    // 🌟 1. 啟用全角度 360 度手勢旋轉（無鎖死視角）
     if (typeof THREE.OrbitControls !== 'undefined') {
       this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
       this.controls.enableDamping = true;
-      this.controls.dampingFactor = 0.05;
+      this.controls.dampingFactor = 0.08;
       this.controls.enableRotate = true;
       this.controls.enableZoom = true;
       this.controls.enablePan = false;
-      this.controls.maxDistance = 50;
-      this.controls.minDistance = 3.5;
-      // 支援雙指縮放與單指 360 度旋轉
+      this.controls.rotateSpeed = 0.85;
+      this.controls.zoomSpeed = 1.0;
+      this.controls.maxDistance = 65;
+      this.controls.minDistance = 3.2;
+
+      // 手機觸控手勢設定
       this.controls.touches = {
         ONE: THREE.TOUCH.ROTATE,
         TWO: THREE.TOUCH.DOLLY_PAN
       };
-      this.controls.target.set(0, isPortrait ? 0.8 : 0.3, 0);
+
+      this.controls.target.set(0, isPortrait ? 0.6 : 0.2, 0);
       this.controls.update();
     }
 
-    // 2. 黑洞事件視界
+    // 2. 黑洞本體 (事件視界)
     const bhGeo = new THREE.SphereGeometry(2.0, 48, 48);
     const bhMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
     this.blackHoleSphere = new THREE.Mesh(bhGeo, bhMat);
@@ -128,7 +132,7 @@ window.SceneManager = {
     const w = window.innerWidth;
     const h = window.innerHeight;
 
-    // 1. 主畫面渲染
+    // 1. 全螢幕主畫面渲染
     this.renderer.setViewport(0, 0, w, h);
     this.renderer.setScissor(0, 0, w, h);
     this.renderer.setScissorTest(false);
@@ -139,14 +143,14 @@ window.SceneManager = {
       this.renderer.render(this.scene, this.camera);
     }
 
-    // 🌟 2. 右上角探測器畫中畫 (修正 Scissor 坐標，消除反白遮擋)
+    // 2. 右上角探測器畫中畫 (修正位置與清屏)
     if (window.ProbeManager?.activeProbe && window.ProbeManager?.probeCamera) {
       const isLandscape = w > h;
       const pipW = Math.min(180, w * 0.34);
       const pipH = pipW * 0.72;
       const topOffset = isLandscape ? 38 : 64;
       const pipX = w - pipW - 12;
-      const pipY = h - pipH - topOffset; // WebGL Scissor Y 軸由下往上算
+      const pipY = h - pipH - topOffset;
 
       this.renderer.clearDepth();
       this.renderer.setScissorTest(true);
@@ -178,7 +182,7 @@ window.SceneManager = {
     this.camera.fov = isPortrait ? 52 : 38;
     this.camera.position.set(0, isPortrait ? 4.2 : 2.8, isPortrait ? 22.0 : 16.0);
     if (this.controls) {
-      this.controls.target.set(0, isPortrait ? 0.8 : 0.3, 0);
+      this.controls.target.set(0, isPortrait ? 0.6 : 0.2, 0);
       this.controls.update();
     }
     this.camera.updateProjectionMatrix();
