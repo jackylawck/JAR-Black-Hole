@@ -1,12 +1,11 @@
-const ParticleManager = {
+window.ParticleManager = {
   disk: null,
   material: null,
   geometry: null,
 
   init(scene, baseRadius) {
-    // 🌟 優化 1: 根據裝置效能自動適配粒子負載
     const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-    const particleCount = isMobile ? 8000 : 28000;
+    const particleCount = isMobile ? 12000 : 32000;
     
     const radii = new Float32Array(particleCount);
     const thetas = new Float32Array(particleCount);
@@ -14,17 +13,16 @@ const ParticleManager = {
     const vYs = new Float32Array(particleCount);
     const lifeOffsets = new Float32Array(particleCount);
 
-    const minR = baseRadius * 1.25;
-    const maxR = 19.5;
+    const minR = 2.4;
+    const maxR = 18.0;
 
     for (let i = 0; i < particleCount; i++) {
-      // 指數分佈使內圈吸積盤具備更高的粒子密度
-      const r = minR + Math.pow(Math.random(), 2.2) * (maxR - minR);
+      const r = minR + Math.pow(Math.random(), 1.6) * (maxR - minR);
       radii[i] = r;
       thetas[i] = Math.random() * Math.PI * 2;
-      speeds[i] = Physics.calculateOrbitalVelocity(r, 16);
-      vYs[i] = (Math.random() - 0.5) * (r * 0.07);
-      lifeOffsets[i] = Math.random() * 12.0; // 隨機生命偏移
+      speeds[i] = typeof Physics !== 'undefined' ? Physics.calculateOrbitalVelocity(r, 16) : Math.sqrt(16.0 / r);
+      vYs[i] = (Math.random() - 0.5) * (0.04 * r);
+      lifeOffsets[i] = Math.random() * 10.0;
     }
 
     this.geometry = new THREE.BufferGeometry();
