@@ -42,16 +42,16 @@ body {
    ============================================================ */
 .probe-pip-deck {
   position: fixed;
-  top: 72px;
-  right: 18px;
-  width: min(240px, 38vw);
-  height: calc(min(240px, 38vw) * 0.72);
-  z-index: 25;
+  top: 14px;
+  right: 14px;
+  width: min(220px, 36vw);
+  height: calc(min(220px, 36vw) * 0.72);
+  z-index: 30;
   border: 1px solid rgba(56, 189, 248, 0.45);
-  background: rgba(2, 6, 23, 0.4);
+  background: rgba(2, 6, 23, 0.55);
   backdrop-filter: blur(10px);
   border-radius: 8px;
-  padding: 6px 8px;
+  padding: 5px 8px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -59,7 +59,7 @@ body {
   opacity: 0;
   transform: scale(0.9) translateY(-10px);
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 0 30px rgba(56, 189, 248, 0.2), inset 0 0 20px rgba(56, 189, 248, 0.1);
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.2), inset 0 0 15px rgba(56, 189, 248, 0.1);
   overflow: hidden;
 }
 
@@ -88,9 +88,9 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 28px;
-  height: 28px;
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgba(56, 189, 248, 0.35);
   border-radius: 50%;
   pointer-events: none;
   z-index: 3;
@@ -100,7 +100,7 @@ body {
 .pip-crosshair::after {
   content: "";
   position: absolute;
-  background: rgba(56, 189, 248, 0.5);
+  background: rgba(56, 189, 248, 0.6);
 }
 
 .pip-crosshair::before {
@@ -123,7 +123,7 @@ body {
   position: absolute;
   bottom: 0;
   width: 2px;
-  height: 22px;
+  height: 20px;
   background: linear-gradient(180deg, #38bdf8 0%, rgba(56, 189, 248, 0.1) 100%);
   box-shadow: 0 0 6px #38bdf8;
 }
@@ -134,9 +134,9 @@ body {
 .pip-wing-right {
   position: absolute;
   bottom: -4px;
-  width: 32px;
-  height: 12px;
-  background: rgba(8, 15, 38, 0.75);
+  width: 28px;
+  height: 10px;
+  background: rgba(8, 15, 38, 0.8);
   border: 1px solid rgba(56, 189, 248, 0.4);
 }
 .pip-wing-left {
@@ -162,7 +162,7 @@ body {
 .pip-title-wrap {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 }
 
 .pip-live-dot {
@@ -176,15 +176,14 @@ body {
 
 .pip-title {
   font-family: 'SF Mono', monospace;
-  font-size: 0.52rem;
+  font-size: 0.5rem;
   font-weight: 800;
   color: #38bdf8;
-  letter-spacing: 0.8px;
 }
 
 .pip-status-tag {
   font-family: 'SF Mono', monospace;
-  font-size: 0.46rem;
+  font-size: 0.44rem;
   color: #fbbf24;
   background: rgba(251, 191, 36, 0.12);
   border: 1px solid rgba(251, 191, 36, 0.3);
@@ -195,13 +194,13 @@ body {
 .pip-dashboard-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2px 6px;
+  gap: 2px 4px;
   font-family: 'SF Mono', monospace;
-  font-size: 0.46rem;
+  font-size: 0.44rem;
   color: #94a3b8;
   z-index: 3;
-  background: rgba(2, 6, 23, 0.6);
-  padding: 3px 5px;
+  background: rgba(2, 6, 23, 0.7);
+  padding: 2px 4px;
   border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -222,32 +221,27 @@ body {
 }
 
 /* ============================================================
-   2. 3A 太空艙透視底座 (Cockpit 3D Tilt HUD)
+   2. 3A 駕駛艙 HUD 主容器
    ============================================================ */
 .hud-cockpit {
   position: fixed;
-  bottom: 14px;
+  bottom: 12px;
   left: 50%;
-  transform: translateX(-50%) perspective(1000px) rotateX(4deg);
-  transform-origin: bottom center;
+  transform: translateX(-50%);
   z-index: 20;
-  width: min(860px, 95vw);
+  width: min(840px, 94vw);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   background: linear-gradient(180deg, rgba(8, 15, 38, 0.78) 0%, rgba(4, 8, 20, 0.94) 100%);
   backdrop-filter: blur(28px) saturate(190%);
   -webkit-backdrop-filter: blur(28px) saturate(190%);
   border: 1px solid rgba(56, 189, 248, 0.25);
   border-top: 1px solid rgba(125, 211, 252, 0.5);
-  border-radius: 16px;
-  padding: 10px 18px 10px;
-  box-shadow:
-    0 -15px 40px rgba(0, 0, 0, 0.85),
-    0 0 35px rgba(56, 189, 248, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
-    inset 0 0 20px rgba(56, 189, 248, 0.04);
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease, padding 0.3s ease;
+  border-radius: 14px;
+  padding: 8px 14px 8px;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.8), 0 0 25px rgba(56, 189, 248, 0.08);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease;
 }
 
 .hud-cockpit::before {
@@ -265,12 +259,12 @@ body {
   border-radius: inherit;
 }
 
-/* 🌟 智能捲起模式 (Telemetry-Only Mode)：只留狀態與實時數據 */
+/* 🌟 智能捲起模式：只留狀態與實時數據 */
 .hud-cockpit.hud-collapsed {
-  transform: translateX(-50%) perspective(1000px) rotateX(0deg);
+  transform: translateX(-50%);
   background: rgba(4, 8, 20, 0.82);
-  gap: 6px;
-  padding-bottom: 8px;
+  gap: 4px;
+  padding-bottom: 6px;
 }
 
 .hud-cockpit.hud-collapsed .collapsible-section {
@@ -289,14 +283,13 @@ body {
   flex-direction: column;
   align-items: center;
   cursor: pointer;
-  padding: 2px 0 4px;
+  padding: 1px 0 3px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  margin-bottom: 4px;
 }
 
 .toggle-pill {
-  width: 36px;
-  height: 4px;
+  width: 32px;
+  height: 3px;
   background: rgba(56, 189, 248, 0.4);
   border-radius: 2px;
   margin-bottom: 2px;
@@ -309,7 +302,7 @@ body {
 }
 
 .toggle-text {
-  font-size: 0.52rem;
+  font-size: 0.5rem;
   font-family: 'SF Mono', monospace;
   font-weight: 700;
   color: #94a3b8;
@@ -323,48 +316,48 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 6px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .status-module {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .beacon-pulse {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .pulse-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: #38bdf8;
-  box-shadow: 0 0 10px #38bdf8;
+  box-shadow: 0 0 8px #38bdf8;
   animation: pulseDot 2s infinite ease-in-out;
 }
 
 @keyframes pulseDot {
-  0%, 100% { opacity: 0.3; transform: scale(0.85); }
-  50% { opacity: 1; transform: scale(1.2); }
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
 }
 
 .beacon-label {
-  font-size: 0.52rem;
+  font-size: 0.5rem;
   font-weight: 800;
-  letter-spacing: 1.5px;
+  letter-spacing: 1px;
   color: #64748b;
-  font-family: 'SF Mono', 'Courier New', monospace;
+  font-family: 'SF Mono', monospace;
 }
 
 .mode-cluster {
   display: flex;
   background: rgba(0, 0, 0, 0.5);
-  border-radius: 6px;
+  border-radius: 5px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 1px;
 }
@@ -373,10 +366,10 @@ body {
   background: transparent;
   border: none;
   color: #64748b;
-  font-size: 0.55rem;
+  font-size: 0.52rem;
   font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 5px;
+  padding: 2px 8px;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -384,27 +377,32 @@ body {
 .mode-btn.active {
   background: linear-gradient(135deg, #0284c7, #7c3aed);
   color: #fff;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
 }
 
-.lang-cluster { display: flex; gap: 3px; }
+.lang-cluster {
+  display: flex;
+  gap: 2px;
+}
+
 .lang-btn {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: #64748b;
-  font-size: 0.52rem;
+  font-size: 0.5rem;
   font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 2px 5px;
+  border-radius: 3px;
   cursor: pointer;
 }
+
 .lang-btn.active {
   border-color: #38bdf8;
   color: #f8fafc;
 }
 
 .objective-banner {
-  font-size: 0.58rem;
+  font-size: 0.52rem;
   color: #94a3b8;
   font-family: 'SF Mono', monospace;
 }
@@ -412,7 +410,6 @@ body {
 .objective-banner .glow-amber {
   color: #fbbf24;
   font-weight: 700;
-  text-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
 }
 
 /* ============================================================
@@ -420,37 +417,29 @@ body {
    ============================================================ */
 .telemetry-deck {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr 0.8fr 0.8fr;
-  gap: 8px;
-  align-items: stretch;
+  grid-template-columns: 1.3fr 1fr 1fr 0.8fr 0.8fr;
+  gap: 6px;
 }
 
 .telemetry-card {
   background: rgba(15, 23, 42, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 8px;
-  padding: 6px 10px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  border-radius: 6px;
+  padding: 4px 6px;
   text-align: center;
-  position: relative;
 }
 
 .telemetry-card.primary-reactor {
   background: radial-gradient(circle at center, rgba(56, 189, 248, 0.12) 0%, rgba(15, 23, 42, 0.65) 100%);
   border: 1px solid rgba(56, 189, 248, 0.35);
-  box-shadow: inset 0 0 16px rgba(56, 189, 248, 0.08);
 }
 
 .telemetry-card .deck-tag {
-  font-size: 0.48rem;
+  font-size: 0.46rem;
   color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
-  font-weight: 800;
   font-family: 'SF Mono', monospace;
-  margin-bottom: 2px;
+  font-weight: 700;
 }
 
 .telemetry-card.primary-reactor .deck-tag {
@@ -458,48 +447,45 @@ body {
 }
 
 .telemetry-card .deck-val {
-  font-family: 'SF Mono', 'Courier New', monospace;
-  font-size: 1.15rem;
-  font-weight: 900;
-  line-height: 1.1;
+  font-family: 'SF Mono', monospace;
+  font-size: 1.05rem;
+  font-weight: 800;
 }
 
 .telemetry-card.primary-reactor .deck-val {
-  font-size: 1.65rem;
+  font-size: 1.35rem;
   color: #f8fafc;
-  text-shadow: 0 0 16px rgba(255, 255, 255, 0.5);
 }
 
 .telemetry-card .deck-val small {
-  font-size: 0.55rem;
-  font-weight: 600;
+  font-size: 0.52rem;
   opacity: 0.6;
 }
 
-.val-cyan { color: #38bdf8; text-shadow: 0 0 12px rgba(56, 189, 248, 0.4); }
-.val-purple { color: #c084fc; text-shadow: 0 0 12px rgba(192, 132, 252, 0.4); }
-.val-amber { color: #fbbf24; text-shadow: 0 0 12px rgba(251, 191, 36, 0.4); }
+.val-cyan { color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
+.val-purple { color: #c084fc; text-shadow: 0 0 10px rgba(192, 132, 252, 0.4); }
+.val-amber { color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.4); }
 
 .telemetry-card.sub-tier {
   background: rgba(6, 12, 30, 0.4);
 }
 .telemetry-card.sub-tier .deck-val {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
 }
 
 /* ============================================================
-   6. ⚛️ 科研模式專屬：多行動態滾動測地線串流日誌
+   6. ⚛️ 科研模式專屬：動態滾動測地線串流日誌
    ============================================================ */
 .pro-terminal-stream-box {
   display: none;
   background: #020806;
   border: 1px solid rgba(16, 185, 129, 0.28);
   border-radius: 6px;
-  padding: 6px 10px;
+  padding: 4px 8px;
   font-family: 'SF Mono', 'Courier New', monospace;
-  font-size: 0.54rem;
+  font-size: 0.5rem;
   color: #10b981;
-  max-height: 52px;
+  max-height: 48px;
   overflow: hidden;
   position: relative;
 }
@@ -525,52 +511,48 @@ body.mode-pro .pro-terminal-stream-box {
    7. 恆星演化史詩控制器
    ============================================================ */
 .evolution-deck {
-  padding: 6px 12px;
+  padding: 5px 10px;
   background: rgba(15, 23, 42, 0.45);
   border: 1px solid rgba(168, 85, 247, 0.2);
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 .evo-hud-bar {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   margin-bottom: 2px;
 }
 
 .evo-hud-title {
-  font-size: 0.55rem;
+  font-size: 0.52rem;
   font-weight: 800;
-  letter-spacing: 1px;
   color: #c084fc;
 }
 
 .evo-hud-badge {
-  font-size: 0.52rem;
+  font-size: 0.5rem;
   color: #38bdf8;
   font-family: 'SF Mono', monospace;
-  font-weight: 700;
 }
 
 .evo-hud-desc {
-  font-size: 0.52rem;
+  font-size: 0.48rem;
   color: #94a3b8;
-  margin-bottom: 4px;
-  line-height: 1.25;
-  min-height: 1.6em;
+  line-height: 1.2;
+  min-height: 1.4em;
+  margin-bottom: 3px;
 }
 
 #evolutionSlider {
   width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, #38bdf8 0%, #ea580c 55%, #f43f5e 80%, #a855f7 100%);
-  border-radius: 2px;
+  height: 2px;
+  background: linear-gradient(90deg, #38bdf8, #ea580c, #f43f5e, #a855f7);
 }
 
 .evo-deck-controls {
   display: flex;
-  gap: 6px;
-  margin-top: 4px;
+  gap: 4px;
+  margin-top: 3px;
 }
 
 .evo-deck-controls button {
@@ -578,9 +560,9 @@ body.mode-pro .pro-terminal-stream-box {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: #cbd5e1;
-  font-size: 0.54rem;
+  font-size: 0.5rem;
   font-weight: 700;
-  padding: 3px 6px;
+  padding: 2px 4px;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -597,8 +579,8 @@ body.mode-pro .pro-terminal-stream-box {
    ============================================================ */
 .command-deck {
   display: grid;
-  grid-template-columns: 1.1fr 1.1fr 0.9fr 1.3fr;
-  gap: 10px;
+  grid-template-columns: 1fr 1fr 0.8fr 1.2fr;
+  gap: 8px;
   align-items: end;
 }
 
@@ -610,59 +592,46 @@ body.mode-pro .pro-terminal-stream-box {
 .slider-meta {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
 .slider-meta label {
-  font-size: 0.55rem;
-  font-weight: 700;
-  letter-spacing: 0.8px;
+  font-size: 0.52rem;
   color: #94a3b8;
-  text-transform: uppercase;
+  font-weight: 700;
 }
 
 .slider-meta .val-chip {
   font-family: 'SF Mono', monospace;
-  font-size: 0.56rem;
+  font-size: 0.52rem;
   font-weight: 800;
-  padding: 0 5px;
+  padding: 0 4px;
   border-radius: 3px;
   border: 1px solid transparent;
-  transition: all 0.25s ease;
 }
 
 .val-chip.status-stable {
   color: #38bdf8;
   background: rgba(56, 189, 248, 0.1);
   border-color: rgba(56, 189, 248, 0.3);
-  text-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
 }
 
 .val-chip.status-warning {
   color: #fbbf24;
   background: rgba(251, 191, 36, 0.12);
   border-color: rgba(251, 191, 36, 0.4);
-  text-shadow: 0 0 10px rgba(251, 191, 36, 0.6);
-  animation: warningPulse 1.5s infinite ease-in-out;
 }
 
 .val-chip.status-critical {
   color: #f43f5e;
   background: rgba(244, 63, 94, 0.15);
   border-color: rgba(244, 63, 94, 0.6);
-  text-shadow: 0 0 14px rgba(244, 63, 94, 0.8);
-  animation: criticalFlash 0.5s infinite alternate ease-in-out;
-}
-
-@keyframes warningPulse {
-  0%, 100% { transform: scale(1); filter: brightness(1); }
-  50% { transform: scale(1.05); filter: brightness(1.3); }
+  animation: criticalFlash 0.5s infinite alternate;
 }
 
 @keyframes criticalFlash {
-  0% { transform: scale(1); filter: brightness(1); box-shadow: 0 0 4px rgba(244, 63, 94, 0.4); }
-  100% { transform: scale(1.08); filter: brightness(1.6); box-shadow: 0 0 16px rgba(244, 63, 94, 0.8); }
+  0% { opacity: 0.7; }
+  100% { opacity: 1; filter: brightness(1.5); }
 }
 
 input[type="range"] {
@@ -671,59 +640,33 @@ input[type="range"] {
   width: 100%;
   height: 2px;
   background: rgba(255, 255, 255, 0.08);
-  border-radius: 1px;
   outline: none;
 }
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 13px;
-  height: 13px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #ffffff, #38bdf8);
-  border: 2px solid rgba(2, 6, 23, 0.9);
-  box-shadow: 0 0 10px #38bdf8;
+  background: #38bdf8;
   cursor: pointer;
-  margin-top: -5.5px;
-  transition: transform 0.15s ease;
-}
-
-input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.25);
-  box-shadow: 0 0 18px #38bdf8;
+  margin-top: -4.5px;
 }
 
 #launchBtn {
   position: relative;
   width: 100%;
-  padding: 9px 12px;
-  background: linear-gradient(135deg, #0284c7 0%, #7c3aed 100%);
+  padding: 7px 10px;
+  background: linear-gradient(135deg, #0284c7, #7c3aed);
   border: 1px solid rgba(125, 211, 252, 0.4);
-  border-radius: 8px;
+  border-radius: 6px;
   color: #ffffff;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 800;
-  letter-spacing: 0.5px;
   cursor: pointer;
   overflow: hidden;
-  box-shadow: 0 4px 18px rgba(2, 132, 199, 0.35);
   white-space: nowrap;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
-}
-
-#launchBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(124, 58, 237, 0.55), 0 0 20px rgba(56, 189, 248, 0.4);
-}
-
-#launchBtn:hover .btn-glow {
-  transform: scale(1.4);
-  opacity: 1;
-}
-
-#launchBtn:active {
-  transform: translateY(1px) scale(0.98);
 }
 
 .btn-glow {
@@ -732,46 +675,57 @@ input[type="range"]::-webkit-slider-thumb:hover {
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.35) 0%, transparent 60%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 60%);
   animation: pulseGlow 3s infinite ease-in-out;
-  transition: transform 0.3s ease, opacity 0.3s ease;
   pointer-events: none;
 }
 
 @keyframes pulseGlow {
-  0%, 100% { opacity: 0.3; transform: scale(0.95); }
-  50% { opacity: 0.75; transform: scale(1.05); }
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+.hud-cockpit.hud-collapsed .collapsible-section {
+  display: none !important;
 }
 
 /* ============================================================
-   9. 手機直屏響應
+   📱 9. 橫屏與直屏空間深度優化
    ============================================================ */
-@media (max-width: 640px) {
+@media (orientation: landscape) and (max-height: 520px) {
   .hud-cockpit {
-    bottom: 6px;
+    bottom: 4px;
     width: 96vw;
-    padding: 8px 10px;
-    gap: 6px;
-    transform: translateX(-50%) perspective(600px) rotateX(2deg);
+    max-width: 96vw;
+    padding: 4px 10px;
+    gap: 3px;
   }
 
   .telemetry-deck {
-    grid-template-columns: 1.2fr 1fr 1fr;
+    grid-template-columns: repeat(5, 1fr);
     gap: 4px;
   }
-  .telemetry-card.sub-tier { display: none; }
-  .telemetry-card.primary-reactor .deck-val { font-size: 1.25rem; }
-  .telemetry-card .deck-val { font-size: 1rem; }
+  .telemetry-card .deck-val { font-size: 0.85rem; }
+  .telemetry-card.primary-reactor .deck-val { font-size: 1.05rem; }
 
   .command-deck {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 0.8fr 1fr;
     gap: 6px;
   }
+  #launchBtn { padding: 4px 8px; font-size: 0.58rem; }
+  .evo-hud-desc { display: none; }
+}
 
-  #launchBtn {
-    grid-column: span 2;
-    padding: 10px;
+@media (max-width: 640px) and (orientation: portrait) {
+  .hud-cockpit {
+    bottom: 6px;
+    width: 96vw;
+    padding: 6px 10px;
   }
-
-  .objective-banner { display: none; }
+  .telemetry-deck {
+    grid-template-columns: 1.2fr 1fr 1fr;
+  }
+  .telemetry-card.sub-tier { display: none; }
+  .command-deck { grid-template-columns: 1fr 1fr; }
+  #launchBtn { grid-column: span 2; padding: 8px; }
 }
