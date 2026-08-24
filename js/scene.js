@@ -10,21 +10,27 @@ window.SceneManager = {
   lensingRingTop: null,
   currentMass: 2.5,
 
+  // 🌟 原生球坐標旋轉狀態機 (保證 100% 任何裝置流暢 360 度旋轉)
+  cameraRadius: 16.0,
+  cameraTheta: 0.0,      // 水平角
+  cameraPhi: Math.PI / 2 - 0.2, // 俯仰角 (微俯視)
+  targetY: 1.2,          // 視線焦點抬高，黑洞置中
+
   init() {
     const container = document.getElementById('canvas-container') || document.body;
     const width = window.innerWidth;
     const height = window.innerHeight;
-    
+    const isPortrait = height > width;
+
     this.scene = new THREE.Scene();
 
-    const isPortrait = height > width;
-    
-    // 🌟 1. 超大特寫：相機推近、FOV 放大，讓黑洞穩居螢幕正中黃金分割位
-    this.camera = new THREE.PerspectiveCamera(isPortrait ? 65 : 45, width / height, 0.1, 1500);
-    this.camera.position.set(0, isPortrait ? 2.5 : 1.8, isPortrait ? 15.0 : 12.0);
+    this.cameraRadius = isPortrait ? 15.0 : 12.0;
+    this.targetY = isPortrait ? 1.6 : 0.8;
+    this.camera = new THREE.PerspectiveCamera(isPortrait ? 60 : 42, width / height, 0.1, 2000);
+    this.updateCameraTransform();
 
-    this.renderer = new THREE.WebGLRenderer({ 
-      antialias: true, 
+    this.renderer = new THREE.WebGLRenderer({
+      antialias: true,
       alpha: true,
       powerPreference: 'high-performance'
     });
@@ -37,71 +43,16 @@ window.SceneManager = {
     container.innerHTML = '';
     container.appendChild(this.renderer.domElement);
 
-    // 🌟 2. 雙重手勢保險：啟用 OrbitControls 並掛載全域 Touch 事件監聽
-    if (typeof THREE.OrbitControls !== 'undefined') {
-      this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
-      this.controls.enableDamping = true;
-      this.controls.dampingFactor = 0.08;
-      this.controls.enableRotate = true;
-      this.controls.enableZoom = true;
-      this.controls.enablePan = false;
-      this.controls.rotateSpeed = 1.0;
-      this.controls.zoomSpeed = 1.2;
-      this.controls.maxDistance = 60;
-      this.controls.minDistance = 3.0;
+    // 🌟 核心：原生 Touch & Pointer 360 度無死角滑動事件
+    this.initNativeGestures();
 
-      // 焦點往上推 1.5，將黑洞從底欄拔起，完美浮在畫面正中
-      this.controls.target.set(0, isPortrait ? 1.5 : 0.8, 0);
-      this.controls.update();
-    }
-
-    // 🌟 3. 原生手勢兜底（防止任何 iOS Safari 阻斷）
-    let isTouching = false;
-    let prevTouchX = 0;
-    let prevTouchY = 0;
-
-    const onTouchStart = (e) => {
-      if (e.touches.length === 1) {
-        isTouching = true;
-        prevTouchX = e.touches[0].pageX;
-        prevTouchY = e.touches[0].pageY;
-      }
-    };
-
-    const onTouchMove = (e) => {
-      if (!isTouching || e.touches.length !== 1) return;
-      const deltaX = e.touches[0].pageX - prevTouchX;
-      const deltaY = e.touches[0].pageY - prevTouchY;
-      prevTouchX = e.touches[0].pageX;
-      prevTouchY = e.touches[0].pageY;
-
-      // 手動驅動相機極座標旋轉
-      if (this.controls) {
-        const rotSpeed = 0.005;
-        const spherical = new THREE.Spherical();
-        const offset = new THREE.Vector3().copy(this.camera.position).sub(this.controls.target);
-        spherical.setFromVector3(offset);
-        spherical.theta -= deltaX * rotSpeed;
-        spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi - deltaY * rotSpeed));
-        offset.setFromSpherical(spherical);
-        this.camera.position.copy(this.controls.target).add(offset);
-        this.camera.lookAt(this.controls.target);
-      }
-    };
-
-    const onTouchEnd = () => { isTouching = false; };
-
-    window.addEventListener('touchstart', onTouchStart, { passive: false });
-    window.addEventListener('touchmove', onTouchMove, { passive: false });
-    window.addEventListener('touchend', onTouchEnd, { passive: false });
-
-    // 4. 黑洞事件視界
+    // 1. 黑洞事件視界
     const bhGeo = new THREE.SphereGeometry(2.0, 48, 48);
     const bhMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
     this.blackHoleSphere = new THREE.Mesh(bhGeo, bhMat);
     this.scene.add(this.blackHoleSphere);
 
-    // 5. 光子球高溫光環
+    // 2. 光子球高溫光環
     const ringGeo = new THREE.RingGeometry(2.01, 2.3, 96);
     const ringMat = new THREE.MeshBasicMaterial({
       color: 0xffbb44,
@@ -114,7 +65,7 @@ window.SceneManager = {
     this.photonRing = new THREE.Mesh(ringGeo, ringMat);
     this.scene.add(this.photonRing);
 
-    // 6. 垂直透鏡光環
+    // 3. 垂直透鏡光環
     const lensGeo = new THREE.RingGeometry(2.05, 2.45, 96);
     const lensMat = new THREE.MeshBasicMaterial({
       color: 0xff8811,
@@ -128,7 +79,7 @@ window.SceneManager = {
     this.lensingRingTop.rotation.y = Math.PI / 2;
     this.scene.add(this.lensingRingTop);
 
-    // 7. 背景星空
+    // 4. 背景星空
     const starsCount = 2000;
     const starsGeo = new THREE.BufferGeometry();
     const starPos = new Float32Array(starsCount * 3);
@@ -137,12 +88,12 @@ window.SceneManager = {
     }
     starsGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
     const starMesh = new THREE.Points(
-      starsGeo, 
+      starsGeo,
       new THREE.PointsMaterial({ size: 0.35, color: 0x88ccff, transparent: true, opacity: 0.6 })
     );
     this.scene.add(starMesh);
 
-    // 8. 後處理泛光
+    // 5. 後處理泛光
     try {
       if (typeof THREE.EffectComposer !== 'undefined' && typeof THREE.UnrealBloomPass !== 'undefined') {
         const renderScene = new THREE.RenderPass(this.scene, this.camera);
@@ -163,6 +114,95 @@ window.SceneManager = {
     }
 
     window.addEventListener('resize', () => this.onWindowResize());
+  },
+
+  updateCameraTransform() {
+    const x = this.cameraRadius * Math.sin(this.cameraPhi) * Math.sin(this.cameraTheta);
+    const y = this.targetY + this.cameraRadius * Math.cos(this.cameraPhi);
+    const z = this.cameraRadius * Math.sin(this.cameraPhi) * Math.cos(this.cameraTheta);
+
+    this.camera.position.set(x, y, z);
+    this.camera.lookAt(0, this.targetY, 0);
+  },
+
+  initNativeGestures() {
+    let isDragging = false;
+    let prevX = 0;
+    let prevY = 0;
+    let initPinchDist = null;
+    let initRadius = this.cameraRadius;
+
+    // 滑鼠事件
+    window.addEventListener('mousedown', (e) => {
+      if (e.target.closest('#bottom-command-hud') || e.target.closest('#top-telemetry-hud')) return;
+      isDragging = true;
+      prevX = e.clientX;
+      prevY = e.clientY;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const deltaX = e.clientX - prevX;
+      const deltaY = e.clientY - prevY;
+      prevX = e.clientX;
+      prevY = e.clientY;
+
+      this.cameraTheta -= deltaX * 0.006;
+      this.cameraPhi = Math.max(0.08, Math.min(Math.PI - 0.08, this.cameraPhi - deltaY * 0.006));
+      this.updateCameraTransform();
+    });
+
+    window.addEventListener('mouseup', () => { isDragging = false; });
+
+    // 滑鼠滾輪縮放
+    window.addEventListener('wheel', (e) => {
+      this.cameraRadius = Math.max(3.5, Math.min(50.0, this.cameraRadius + e.deltaY * 0.02));
+      this.updateCameraTransform();
+    }, { passive: true });
+
+    // 🌟 手機觸控事件 (單指旋轉 + 雙指縮放)
+    window.addEventListener('touchstart', (e) => {
+      if (e.target.closest('#bottom-command-hud') || e.target.closest('#top-telemetry-hud')) return;
+
+      if (e.touches.length === 1) {
+        isDragging = true;
+        prevX = e.touches[0].clientX;
+        prevY = e.touches[0].clientY;
+      } else if (e.touches.length === 2) {
+        isDragging = false;
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        initPinchDist = Math.hypot(dx, dy);
+        initRadius = this.cameraRadius;
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 1 && isDragging) {
+        const deltaX = e.touches[0].clientX - prevX;
+        const deltaY = e.touches[0].clientY - prevY;
+        prevX = e.touches[0].clientX;
+        prevY = e.touches[0].clientY;
+
+        this.cameraTheta -= deltaX * 0.008;
+        this.cameraPhi = Math.max(0.08, Math.min(Math.PI - 0.08, this.cameraPhi - deltaY * 0.008));
+        this.updateCameraTransform();
+      } else if (e.touches.length === 2 && initPinchDist) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const currentDist = Math.hypot(dx, dy);
+        const factor = initPinchDist / currentDist;
+        this.cameraRadius = Math.max(3.5, Math.min(50.0, initRadius * factor));
+        this.updateCameraTransform();
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e) => {
+      if (e.touches.length === 0) {
+        isDragging = false;
+        initPinchDist = null;
+      }
+    }, { passive: true });
   },
 
   renderDualViewport() {
@@ -214,13 +254,11 @@ window.SceneManager = {
     const isPortrait = height > width;
 
     this.camera.aspect = width / height;
-    this.camera.fov = isPortrait ? 65 : 45;
-    this.camera.position.set(0, isPortrait ? 2.5 : 1.8, isPortrait ? 15.0 : 12.0);
-    if (this.controls) {
-      this.controls.target.set(0, isPortrait ? 1.5 : 0.8, 0);
-      this.controls.update();
-    }
+    this.camera.fov = isPortrait ? 60 : 42;
+    this.cameraRadius = isPortrait ? 15.0 : 12.0;
+    this.targetY = isPortrait ? 1.6 : 0.8;
     this.camera.updateProjectionMatrix();
+    this.updateCameraTransform();
 
     this.renderer.setSize(width, height);
     if (this.composer) this.composer.setSize(width, height);
