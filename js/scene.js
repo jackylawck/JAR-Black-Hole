@@ -17,7 +17,7 @@ window.SceneManager = {
     this.scene = new THREE.Scene();
 
     this.camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1500);
-    this.camera.position.set(0, 3.2, 24);
+    this.camera.position.set(0, 3.5, 24);
 
     this.renderer = new THREE.WebGLRenderer({ 
       antialias: true, 
@@ -26,6 +26,7 @@ window.SceneManager = {
     });
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.renderer.autoClear = false;
 
     container.innerHTML = '';
     container.appendChild(this.renderer.domElement);
@@ -85,7 +86,7 @@ window.SceneManager = {
     );
     this.scene.add(starMesh);
 
-    // 5. 後處理 (若 CDN 缺失則自動降級為標準渲染，絕不報錯)
+    // 5. 後處理 (發光 UnrealBloomPass)
     try {
       if (typeof THREE.EffectComposer !== 'undefined' && typeof THREE.UnrealBloomPass !== 'undefined') {
         const renderScene = new THREE.RenderPass(this.scene, this.camera);
@@ -102,13 +103,46 @@ window.SceneManager = {
         throw new Error('Fallback');
       }
     } catch (e) {
-      this.composer = {
-        render: () => this.renderer.render(this.scene, this.camera),
-        setSize: (w, h) => this.renderer.setSize(w, h)
-      };
+      this.composer = null;
     }
 
     window.addEventListener('resize', () => this.onWindowResize());
+  },
+
+  // 🌟 雙重視口渲染管線 (主視角 + 探測器 POV 畫中畫)
+  renderDualViewport() {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+
+    // 1. 全螢幕主座艙視角
+    this.renderer.setViewport(0, 0, w, h);
+    this.renderer.setScissor(0, 0, w, h);
+    this.renderer.setScissorTest(false);
+
+    if (this.composer) {
+      this.composer.render();
+    } else {
+      this.renderer.render(this.scene, this.camera);
+    }
+
+    // 2. 右上角畫中畫：探測器第一人稱直墜視角
+    if (window.ProbeManager?.activeProbe && window.ProbeManager?.probeCamera) {
+      const pipW = Math.min(240, w * 0.38);
+      const pipH = pipW * 0.72;
+      const pipX = w - pipW - 18;
+      const pipY = h - pipH - 72;
+
+      this.renderer.clearDepth();
+      this.renderer.setScissorTest(true);
+      this.renderer.setScissor(pipX, pipY, pipW, pipH);
+      this.renderer.setViewport(pipX, pipY, pipW, pipH);
+
+      window.ProbeManager.probeCamera.aspect = pipW / pipH;
+      window.ProbeManager.probeCamera.updateProjectionMatrix();
+      this.renderer.render(this.scene, window.ProbeManager.probeCamera);
+
+      this.renderer.setScissorTest(false);
+    }
   },
 
   updateBlackHoleScale(massScale) {
@@ -123,6 +157,6 @@ window.SceneManager = {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
-    if (this.composer && this.composer.setSize) this.composer.setSize(width, height);
+    if (this.composer) this.composer.setSize(width, height);
   }
 };
