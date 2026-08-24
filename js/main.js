@@ -42,7 +42,42 @@ document.addEventListener('DOMContentLoaded', () => {
     if (uiPanel) uiPanel.style.opacity = '1';
   });
 
-  // 2. 狀態管理
+  // 🌟 2. 智能捲起 / 展開切換（捲起時只留實時數據與狀態）
+  const drawerToggleBar = document.getElementById('drawerToggleBar');
+  const drawerToggleText = document.getElementById('drawerToggleText');
+
+  function updateToggleText(isCollapsed) {
+    if (!drawerToggleText) return;
+    const isEn = window.I18N?.currentLang === 'en';
+    if (isCollapsed) {
+      drawerToggleText.textContent = isEn ? '▲ EXPAND CONSOLE (FULL CONTROLS)' : '▲ 展開控制台 (完整調節)';
+    } else {
+      drawerToggleText.textContent = isEn ? '▼ COLLAPSE CONSOLE (TELEMETRY ONLY)' : '▼ 捲起控制台 (只留實時數據)';
+    }
+  }
+
+  function toggleCockpitHUD() {
+    if (!uiPanel) return;
+    uiPanel.classList.toggle('hud-collapsed');
+    const isCollapsed = uiPanel.classList.contains('hud-collapsed');
+    updateToggleText(isCollapsed);
+    if (typeof window.AudioManager !== 'undefined') window.AudioManager.playUITick?.();
+  }
+
+  drawerToggleBar?.addEventListener('click', toggleCockpitHUD);
+
+  // 🌟 觸控/滑動 3D 畫布時自動收起至「實時數據模式」，最大化觀看視野
+  const canvasContainer = document.getElementById('canvas-container');
+  if (canvasContainer && uiPanel) {
+    canvasContainer.addEventListener('pointerdown', () => {
+      if (!uiPanel.classList.contains('hud-collapsed')) {
+        uiPanel.classList.add('hud-collapsed');
+        updateToggleText(true);
+      }
+    });
+  }
+
+  // 3. 狀態管理
   let speedFactor = 1.0;
   let massScale = 1.0;
   let lastMass = 2.5;
@@ -100,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 3. 雙模式切換
+  // 4. 雙模式切換
   const modeBasicBtn = document.getElementById('mode-basic');
   const modeProBtn = document.getElementById('mode-pro');
 
@@ -124,21 +159,23 @@ document.addEventListener('DOMContentLoaded', () => {
   modeBasicBtn?.addEventListener('click', () => switchMode('basic'));
   modeProBtn?.addEventListener('click', () => switchMode('pro'));
 
-  // 4. 語言切換
+  // 5. 語言切換
   const btnZh = document.getElementById('btn-zh');
   const btnEn = document.getElementById('btn-en');
   btnZh?.addEventListener('click', () => {
     btnZh.classList.add('active');
     btnEn?.classList.remove('active');
     window.I18N?.setLang('zh');
+    updateToggleText(uiPanel?.classList.contains('hud-collapsed'));
   });
   btnEn?.addEventListener('click', () => {
     btnEn.classList.add('active');
     btnZh?.classList.remove('active');
     window.I18N?.setLang('en');
+    updateToggleText(uiPanel?.classList.contains('hud-collapsed'));
   });
 
-  // 5. 滑塊互動綁定與全指標獨立滾動
+  // 6. 滑塊互動綁定與全指標獨立滾動
   const speedRange = document.getElementById('speedRange');
   const speedVal = document.getElementById('speedVal');
   speedRange?.addEventListener('input', (e) => {
@@ -184,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   massRange?.addEventListener('input', triggerMetricUpdate);
 
-  // 6. 演化時間軸控制器
+  // 7. 演化時間軸控制器
   const evoSlider = document.getElementById('evolutionSlider');
   evoSlider?.addEventListener('input', (e) => {
     if (typeof window.EvolutionManager !== 'undefined') {
@@ -222,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 7. 發射探測器
+  // 8. 發射探測器
   const launchBtn = document.getElementById('launchBtn');
   launchBtn?.addEventListener('click', () => {
     if (typeof window.ProbeManager !== 'undefined') {
@@ -233,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 8. ⚛️ 科研模式：動態滾動測地線張量日誌
+  // 9. ⚛️ 科研模式：動態滾動測地線張量日誌
   let logTimer = 0;
   function updateProTerminalStream(delta) {
     if (window.I18N?.currentMode !== 'pro') return;
@@ -265,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 9. 動畫主迴圈
+  // 10. 動畫主迴圈
   function animate() {
     requestAnimationFrame(animate);
 
