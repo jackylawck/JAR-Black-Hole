@@ -2,50 +2,48 @@
 <html lang="zh-HK">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, user-scalable=no">
-  <title>J.A.R. 黑洞 3D - 廣義相對論實時模擬器</title>
-  
-  <!-- SEO & Open Graph 元數據 -->
-  <meta name="description" content="J.A.R. 廣義相對論實時 3D 黑洞天體物理模擬器，具備 GPGPU 吸積盤、光子環與 3D HRTF 空間化音效。">
-  <meta name="author" content="Jacky Law">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="J.A.R. 黑洞 3D - 廣義相對論實時模擬器">
-  <meta property="og:description" content="實時廣義相對論 3D 黑洞物理模擬與電影級聽覺體驗。">
-  <meta property="og:image" content="assets/icons/icon-512x512.png">
-  
-  <!-- PWA 與獨立運行設定 -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#020617">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="assets/icons/icon-192x192.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#020617">
 
-  <!-- 嚴格 CSP 安全防護政策 -->
+  <meta name="google-site-verification" content="JZ5UohX-CcP_fQV0_DI9VadkKY4ZoTTkUifL88-fIcY" />
+
+  <!-- 品牌標題：Joint Applied Research 聯合應用科學探索 -->
+  <title>🌌 J.A.R. (Joint Applied Research) 黑洞 3D | JAR Black Hole - General Relativity Simulator</title>
+  <meta name="description" content="J.A.R. (Joint Applied Research 聯合應用科學探索) Black Hole 3D is a research-grade WebGL General Relativity Simulator, featuring RK4 raymarching, GPGPU accretion disk, relativistic Doppler beaming, and 3D HRTF spatial audio.">
+  <meta name="keywords" content="JAR Black Hole, Joint Applied Research, 聯合應用科學探索, General Relativity, Black Hole Simulator, 3D Black Hole, Schwarzschild Metric, Three.js, WebGL, STEM Education, Jacky Law">
+  <meta name="author" content="羅子淇 Jacky Law">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://jackylawck.github.io/jar-black-hole/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://jackylawck.github.io/jar-black-hole/">
+  <meta property="og:title" content="🌌 J.A.R. (Joint Applied Research 聯合應用科學探索) 黑洞 3D | JAR Black Hole">
+  <meta property="og:description" content="High-fidelity 3D General Relativity Black Hole Simulator with real-time relativistic Doppler beaming and spatial audio, powered by Joint Applied Research (聯合應用科學探索).">
+  <meta property="og:image" content="https://jackylawck.github.io/jar-black-hole/jarBlackHole512icon.png">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://jackylawck.github.io/jar-black-hole/">
+  <meta name="twitter:title" content="🌌 JAR (Joint Applied Research 聯合應用科學探索) Black Hole 3D | General Relativity Simulator">
+  <meta name="twitter:description" content="Experience real-time spacetime curvature, photon sphere lensing, and tidal spaghettification telemetry, powered by Joint Applied Research (聯合應用科學探索).">
+  <meta name="twitter:image" content="https://jackylawck.github.io/jar-black-hole/jarBlackHole512icon.png">
+
+  <!-- PWA & App Icons -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="./jarBlackHole192icon.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="./jarBlackHole512icon.png">
+  <link rel="apple-touch-icon" href="./jarBlackHole192icon.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="./jarBlackHole512icon.png">
+
+  <!-- CSP 安全防護政策 -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self';">
 
-  <!-- 核心 CDN 資源預解析與預載入 -->
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" as="script">
-  <link rel="preload" href="style.css" as="style">
-
-  <!-- 樣式表 -->
   <link rel="stylesheet" href="style.css">
-
-  <!-- JSON-LD 結構化資料 (Schema.org) -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "J.A.R. 黑洞 3D",
-    "description": "實時廣義相對論 3D 黑洞物理模擬與 STEM 科學教育體驗",
-    "applicationCategory": "EducationalApplication",
-    "operatingSystem": "Web Browser",
-    "author": {
-      "@type": "Person",
-      "name": "Jacky Law"
-    }
-  }
-  </script>
 </head>
 <body>
   <!-- 三層 Parallax 視差星空背景 -->
