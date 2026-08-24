@@ -18,9 +18,9 @@ window.SceneManager = {
     this.scene = new THREE.Scene();
 
     const isPortrait = height > width;
-    // 🌟 1. 相機視角拉遠並向上抬高，黑洞穩坐畫面正中央（上半部 50%~55%）
-    this.camera = new THREE.PerspectiveCamera(isPortrait ? 58 : 40, width / height, 0.1, 2000);
-    this.camera.position.set(0, isPortrait ? 6.5 : 3.8, isPortrait ? 28.0 : 18.0);
+    // 🌟 相機位置往上提 (Y = 8.0, Z = 32.0)，黑洞重心自動落在螢幕正中
+    this.camera = new THREE.PerspectiveCamera(isPortrait ? 58 : 40, width / height, 0.1, 2500);
+    this.camera.position.set(0, isPortrait ? 8.0 : 4.5, isPortrait ? 32.0 : 20.0);
 
     this.renderer = new THREE.WebGLRenderer({ 
       antialias: true, 
@@ -36,31 +36,31 @@ window.SceneManager = {
     container.innerHTML = '';
     container.appendChild(this.renderer.domElement);
 
-    // 🌟 2. 核心修復：直接綁定 window，確保 iOS / Android 手勢 100% 觸發 360 度自由旋轉
+    // 🌟 核心：綁定 renderer.domElement 並設置觸控處理
     if (typeof THREE.OrbitControls !== 'undefined') {
-      this.controls = new THREE.OrbitControls(this.camera, window);
+      this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
       this.controls.enableDamping = true;
-      this.controls.dampingFactor = 0.06;
+      this.controls.dampingFactor = 0.08;
       this.controls.enableRotate = true;
       this.controls.enableZoom = true;
       this.controls.enablePan = false;
       this.controls.rotateSpeed = 0.9;
       this.controls.zoomSpeed = 1.2;
-      this.controls.maxDistance = 80;
-      this.controls.minDistance = 3.0;
+      this.controls.maxDistance = 90;
+      this.controls.minDistance = 3.5;
 
-      // 🌟 焦點抬高到 Y = 1.5，令星體同黑洞居於屏幕正中，絕不跌落底欄
-      this.controls.target.set(0, isPortrait ? 1.5 : 0.6, 0);
+      // 🌟 焦點設定在 Y = 2.5，保證整個黑洞與吸積盤在直屏下完美居中偏上
+      this.controls.target.set(0, isPortrait ? 2.5 : 1.0, 0);
       this.controls.update();
     }
 
-    // 2. 黑洞本體 (事件視界)
+    // 1. 黑洞本體 (事件視界)
     const bhGeo = new THREE.SphereGeometry(2.0, 48, 48);
     const bhMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
     this.blackHoleSphere = new THREE.Mesh(bhGeo, bhMat);
     this.scene.add(this.blackHoleSphere);
 
-    // 3. 光子球高溫光環
+    // 2. 光子球高溫光環
     const ringGeo = new THREE.RingGeometry(2.01, 2.3, 96);
     const ringMat = new THREE.MeshBasicMaterial({
       color: 0xffbb44,
@@ -73,7 +73,7 @@ window.SceneManager = {
     this.photonRing = new THREE.Mesh(ringGeo, ringMat);
     this.scene.add(this.photonRing);
 
-    // 4. 垂直透鏡光環
+    // 3. 垂直透鏡光環
     const lensGeo = new THREE.RingGeometry(2.05, 2.45, 96);
     const lensMat = new THREE.MeshBasicMaterial({
       color: 0xff8811,
@@ -87,7 +87,7 @@ window.SceneManager = {
     this.lensingRingTop.rotation.y = Math.PI / 2;
     this.scene.add(this.lensingRingTop);
 
-    // 5. 背景星空
+    // 4. 背景星空
     const starsCount = 2000;
     const starsGeo = new THREE.BufferGeometry();
     const starPos = new Float32Array(starsCount * 3);
@@ -101,7 +101,7 @@ window.SceneManager = {
     );
     this.scene.add(starMesh);
 
-    // 6. 後處理泛光
+    // 5. 後處理泛光
     try {
       if (typeof THREE.EffectComposer !== 'undefined' && typeof THREE.UnrealBloomPass !== 'undefined') {
         const renderScene = new THREE.RenderPass(this.scene, this.camera);
@@ -128,7 +128,6 @@ window.SceneManager = {
     const w = window.innerWidth;
     const h = window.innerHeight;
 
-    // 1. 全螢幕主畫面渲染
     this.renderer.setViewport(0, 0, w, h);
     this.renderer.setScissor(0, 0, w, h);
     this.renderer.setScissorTest(false);
@@ -139,7 +138,6 @@ window.SceneManager = {
       this.renderer.render(this.scene, this.camera);
     }
 
-    // 2. 右上角探測器畫中畫
     if (window.ProbeManager?.activeProbe && window.ProbeManager?.probeCamera) {
       const isLandscape = w > h;
       const pipW = Math.min(170, w * 0.32);
@@ -176,9 +174,9 @@ window.SceneManager = {
 
     this.camera.aspect = width / height;
     this.camera.fov = isPortrait ? 58 : 40;
-    this.camera.position.set(0, isPortrait ? 6.5 : 3.8, isPortrait ? 28.0 : 18.0);
+    this.camera.position.set(0, isPortrait ? 8.0 : 4.5, isPortrait ? 32.0 : 20.0);
     if (this.controls) {
-      this.controls.target.set(0, isPortrait ? 1.5 : 0.6, 0);
+      this.controls.target.set(0, isPortrait ? 2.5 : 1.0, 0);
       this.controls.update();
     }
     this.camera.updateProjectionMatrix();
