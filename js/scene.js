@@ -16,13 +16,10 @@ window.SceneManager = {
     
     this.scene = new THREE.Scene();
 
-    // 🌟 判斷橫屏與直屏相機高度，確保黑洞始終懸浮於上半部黃金分割點
+    // 🌟 核心修正：相機平視微俯，讓黑洞在畫面上半部大氣展開
     const isPortrait = height > width;
-    const camY = isPortrait ? 8.2 : 5.0;
-    const camZ = isPortrait ? 28 : 22;
-
-    this.camera = new THREE.PerspectiveCamera(46, width / height, 0.1, 1500);
-    this.camera.position.set(0, camY, camZ);
+    this.camera = new THREE.PerspectiveCamera(isPortrait ? 55 : 42, width / height, 0.1, 1500);
+    this.camera.position.set(0, isPortrait ? 3.0 : 2.0, isPortrait ? 22.0 : 16.5);
 
     this.renderer = new THREE.WebGLRenderer({ 
       antialias: true, 
@@ -40,10 +37,10 @@ window.SceneManager = {
       this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
       this.controls.enableDamping = true;
       this.controls.dampingFactor = 0.05;
-      this.controls.maxDistance = 75;
-      this.controls.minDistance = 5.0;
-      // 觀察目標點向下偏移，讓黑洞自然抬升至上半部中央
-      this.controls.target.set(0, isPortrait ? -1.8 : -0.8, 0);
+      this.controls.maxDistance = 60;
+      this.controls.minDistance = 4.0;
+      // 🌟 將視角焦點稍微向上拉，使黑洞中心穩居上半部
+      this.controls.target.set(0, isPortrait ? 1.5 : 0.8, 0);
       this.controls.update();
     }
 
@@ -54,7 +51,7 @@ window.SceneManager = {
     this.scene.add(this.blackHoleSphere);
 
     // 2. 光子球高溫光環
-    const ringGeo = new THREE.RingGeometry(2.01, 2.3, 96);
+    const ringGeo = new THREE.RingGeometry(2.01, 2.35, 96);
     const ringMat = new THREE.MeshBasicMaterial({
       color: 0xffd060,
       side: THREE.DoubleSide,
@@ -67,12 +64,12 @@ window.SceneManager = {
     this.scene.add(this.photonRing);
 
     // 3. 引力透鏡垂直光環
-    const lensGeo = new THREE.RingGeometry(2.05, 2.45, 96);
+    const lensGeo = new THREE.RingGeometry(2.05, 2.55, 96);
     const lensMat = new THREE.MeshBasicMaterial({
       color: 0xff9922,
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0.75,
+      opacity: 0.8,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     });
@@ -94,7 +91,7 @@ window.SceneManager = {
     );
     this.scene.add(starMesh);
 
-    // 5. 後處理發光
+    // 5. 後處理 (發光 UnrealBloomPass)
     try {
       if (typeof THREE.EffectComposer !== 'undefined' && typeof THREE.UnrealBloomPass !== 'undefined') {
         const renderScene = new THREE.RenderPass(this.scene, this.camera);
@@ -134,7 +131,7 @@ window.SceneManager = {
 
     // 2. 右上角畫中畫：探測器第一人稱直墜視角
     if (window.ProbeManager?.activeProbe && window.ProbeManager?.probeCamera) {
-      const pipW = Math.min(220, w * 0.36);
+      const pipW = Math.min(220, w * 0.35);
       const pipH = pipW * 0.72;
       const pipX = w - pipW - 14;
       const pipY = h - pipH - 14;
@@ -164,9 +161,10 @@ window.SceneManager = {
     const isPortrait = height > width;
 
     this.camera.aspect = width / height;
-    this.camera.position.set(0, isPortrait ? 8.2 : 5.0, isPortrait ? 28 : 22);
+    this.camera.fov = isPortrait ? 55 : 42;
+    this.camera.position.set(0, isPortrait ? 3.0 : 2.0, isPortrait ? 22.0 : 16.5);
     if (this.controls) {
-      this.controls.target.set(0, isPortrait ? -1.8 : -0.8, 0);
+      this.controls.target.set(0, isPortrait ? 1.5 : 0.8, 0);
       this.controls.update();
     }
     this.camera.updateProjectionMatrix();
