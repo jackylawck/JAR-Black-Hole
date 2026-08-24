@@ -44,36 +44,36 @@ window.SceneManager = {
       this.controls.dampingFactor = 0.05;
       this.controls.maxDistance = 60;
       this.controls.minDistance = 4.0;
-      this.controls.target.set(0, isPortrait ? 0.6 : 0.2, 0);
+      this.controls.target.set(0, isPortrait ? 0.8 : 0.3, 0);
       this.controls.update();
     }
 
-    // 1. 黑洞事件視界實體
+    // 1. 黑洞事件視界
     const bhGeo = new THREE.SphereGeometry(2.0, 48, 48);
     const bhMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
     this.blackHoleSphere = new THREE.Mesh(bhGeo, bhMat);
     this.scene.add(this.blackHoleSphere);
 
     // 2. 光子球高溫光環
-    const ringGeo = new THREE.RingGeometry(2.01, 2.25, 96);
+    const ringGeo = new THREE.RingGeometry(2.01, 2.3, 96);
     const ringMat = new THREE.MeshBasicMaterial({
       color: 0xffbb44,
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0.9,
+      opacity: 0.95,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     });
     this.photonRing = new THREE.Mesh(ringGeo, ringMat);
     this.scene.add(this.photonRing);
 
-    // 3. 垂直引力透鏡光環
-    const lensGeo = new THREE.RingGeometry(2.05, 2.38, 96);
+    // 3. 垂直透鏡光環
+    const lensGeo = new THREE.RingGeometry(2.05, 2.45, 96);
     const lensMat = new THREE.MeshBasicMaterial({
       color: 0xff8811,
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0.65,
+      opacity: 0.7,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     });
@@ -95,38 +95,15 @@ window.SceneManager = {
     );
     this.scene.add(starMesh);
 
-    // 🌟 5. 注入 KerrShaders 並對齊 Aspect 與 FOV
-    if (typeof window.KerrShaders !== 'undefined') {
-      const shaderGeo = new THREE.PlaneGeometry(16, 16);
-      this.raymarchMaterial = new THREE.ShaderMaterial({
-        vertexShader: window.KerrShaders.vertexShader,
-        fragmentShader: window.KerrShaders.fragmentShader,
-        uniforms: {
-          uCameraPos: { value: this.camera.position },
-          uCamMatrix: { value: this.camera.matrixWorld },
-          uAspect: { value: width / height },
-          uFovTan: { value: Math.tan(THREE.MathUtils.degToRad(this.camera.fov * 0.5)) },
-          uMass: { value: 1.0 },
-          uSpin: { value: 0.3 },
-          uTime: { value: 0.0 }
-        },
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending
-      });
-      this.raymarchMesh = new THREE.Mesh(shaderGeo, this.raymarchMaterial);
-      this.scene.add(this.raymarchMesh);
-    }
-
-    // 6. 後處理泛光
+    // 5. 後處理泛光
     try {
       if (typeof THREE.EffectComposer !== 'undefined' && typeof THREE.UnrealBloomPass !== 'undefined') {
         const renderScene = new THREE.RenderPass(this.scene, this.camera);
         this.bloomPass = new THREE.UnrealBloomPass(
           new THREE.Vector2(width, height),
-          0.85,
-          0.35,
-          0.2
+          1.1,
+          0.4,
+          0.18
         );
         this.composer = new THREE.EffectComposer(this.renderer);
         this.composer.addPass(renderScene);
@@ -141,24 +118,9 @@ window.SceneManager = {
     window.addEventListener('resize', () => this.onWindowResize());
   },
 
-  renderDualViewport(elapsedTime = 0) {
+  renderDualViewport() {
     const w = window.innerWidth;
     const h = window.innerHeight;
-
-    // 🌟 相機正面鎖定與長寬比實時同步
-    if (this.raymarchMesh && this.camera && this.raymarchMaterial) {
-      const forwardDir = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion);
-      this.raymarchMesh.position.copy(this.camera.position).add(forwardDir.multiplyScalar(6.0));
-      this.raymarchMesh.lookAt(this.camera.position);
-
-      this.raymarchMaterial.uniforms.uCameraPos.value.copy(this.camera.position);
-      this.raymarchMaterial.uniforms.uCamMatrix.value.copy(this.camera.matrixWorld);
-      this.raymarchMaterial.uniforms.uAspect.value = w / h;
-      this.raymarchMaterial.uniforms.uFovTan.value = Math.tan(THREE.MathUtils.degToRad(this.camera.fov * 0.5));
-      this.raymarchMaterial.uniforms.uMass.value = this.currentMass / 2.5;
-      this.raymarchMaterial.uniforms.uSpin.value = this.currentSpin;
-      this.raymarchMaterial.uniforms.uTime.value = elapsedTime;
-    }
 
     // 主畫面渲染
     this.renderer.setViewport(0, 0, w, h);
@@ -171,32 +133,28 @@ window.SceneManager = {
       this.renderer.render(this.scene, this.camera);
     }
 
-    // 探測器 POV 畫中畫
+    // 探測器畫中畫 (右上角)
     if (window.ProbeManager?.activeProbe && window.ProbeManager?.probeCamera) {
       const pipW = Math.min(200, w * 0.32);
       const pipH = pipW * 0.72;
-      const pipX = w - pipW - 12;
-      const pipY = h - pipH - 65;
+      const pipX = w - pipW - 14;
+      const pipY = h - pipH - 56;
 
       this.renderer.clearDepth();
       this.renderer.setScissorTest(true);
       this.renderer.setScissor(pipX, pipY, pipW, pipH);
       this.renderer.setViewport(pipX, pipY, pipW, pipH);
 
-      if (this.raymarchMesh) this.raymarchMesh.visible = false;
-
       window.ProbeManager.probeCamera.aspect = pipW / pipH;
       window.ProbeManager.probeCamera.updateProjectionMatrix();
       this.renderer.render(this.scene, window.ProbeManager.probeCamera);
 
-      if (this.raymarchMesh) this.raymarchMesh.visible = true;
       this.renderer.setScissorTest(false);
     }
   },
 
-  updateBlackHoleScale(massScale, spin = 0.3) {
+  updateBlackHoleScale(massScale) {
     this.currentMass = massScale * 2.5;
-    this.currentSpin = spin;
 
     if (this.blackHoleSphere) this.blackHoleSphere.scale.setScalar(massScale);
     if (this.photonRing) this.photonRing.scale.setScalar(massScale);
@@ -212,7 +170,7 @@ window.SceneManager = {
     this.camera.fov = isPortrait ? 52 : 38;
     this.camera.position.set(0, isPortrait ? 3.8 : 2.5, isPortrait ? 22.0 : 16.0);
     if (this.controls) {
-      this.controls.target.set(0, isPortrait ? 0.6 : 0.2, 0);
+      this.controls.target.set(0, isPortrait ? 0.8 : 0.3, 0);
       this.controls.update();
     }
     this.camera.updateProjectionMatrix();
