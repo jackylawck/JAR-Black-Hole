@@ -15,23 +15,19 @@ window.AudioManager = {
 
     this.ctx = new AudioContext();
 
-    // 1. 引力低頻振盪器
     this.humOsc = this.ctx.createOscillator();
     this.humOsc.type = 'sawtooth';
     this.humOsc.frequency.setValueAtTime(42, this.ctx.currentTime);
 
-    // 2. 共振低通濾波器
     this.filterNode = this.ctx.createBiquadFilter();
     this.filterNode.type = 'lowpass';
     this.filterNode.frequency.setValueAtTime(180, this.ctx.currentTime);
     this.filterNode.Q.setValueAtTime(4.0, this.ctx.currentTime);
 
-    // 3. 非線性波形整形器 (時空失真)
     this.distortionNode = this.ctx.createWaveShaper();
     this.distortionNode.curve = this.makeDistortionCurve(0);
     this.distortionNode.oversample = '2x';
 
-    // 4. 增益與空間音效 Panner
     this.humGain = this.ctx.createGain();
     this.humGain.gain.setValueAtTime(0.12, this.ctx.currentTime);
 
@@ -44,7 +40,6 @@ window.AudioManager = {
       this.pannerNode.rolloffFactor = 1.2;
     }
 
-    // 串接音訊管線
     this.humOsc.connect(this.distortionNode);
     this.distortionNode.connect(this.filterNode);
     this.filterNode.connect(this.humGain);
@@ -98,7 +93,6 @@ window.AudioManager = {
     }
   },
 
-  // 🌟 四維類比電路全參數非線性動態抖動 (Frequency + Resonance Q + Distortion + Gain)
   applyAnalogJitter(elapsedTime) {
     if (!this.isInitialized || !this.ctx) return;
     const now = this.ctx.currentTime;
