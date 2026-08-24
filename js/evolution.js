@@ -10,18 +10,10 @@ window.EvolutionManager = {
   supernovaGeo: null,
   supernovaVels: null,
 
-  stages: [
-    { threshold: 0.0, name: '原恆星重力吸積', desc: '星際氣體在萬有引力下塌縮凝聚，核心溫度急劇攀升。' },
-    { threshold: 0.33, name: '藍超巨星主序期', desc: '核心進行劇烈熱核融合，向外輻射壓與重力達成流體靜力平衡。' },
-    { threshold: 0.66, name: '超新星爆發 (核塌縮)', desc: '鐵核燃料耗盡引發災難性引力塌縮，外層物質以相對論速度轟擊噴發！' },
-    { threshold: 1.0, name: '黑洞奇異點 (事件視界)', desc: '殘餘核心質量突破歐本海默極限，核心徹底塌縮形成事件視界與吸積盤。' }
-  ],
-
   init(scene) {
     if (!scene) return;
     this.scene = scene;
 
-    // 🌟 調配合適半徑 (半徑由 3.5 調整為 2.2，避免巨星球體遮蔽整個螢幕)
     const starGeo = new THREE.SphereGeometry(2.2, 32, 32);
     const starMat = new THREE.MeshBasicMaterial({
       color: 0x60a5fa,
@@ -31,7 +23,6 @@ window.EvolutionManager = {
     this.protoStarMesh = new THREE.Mesh(starGeo, starMat);
     this.scene.add(this.protoStarMesh);
 
-    // 超新星爆發粒子
     this.supernovaGeo = new THREE.BufferGeometry();
     const positions = new Float32Array(this.supernovaCount * 3);
     const colors = new Float32Array(this.supernovaCount * 3);
@@ -97,19 +88,22 @@ window.EvolutionManager = {
 
   updatePlayBtn() {
     const btn = document.getElementById('playPauseBtn');
-    if (btn) {
-      btn.textContent = this.isPlaying ? '⏸ 暫停' : '▶ 演化播放';
+    if (btn && window.I18N) {
+      const t = window.I18N.dict[window.I18N.currentLang] || window.I18N.dict.zh;
+      btn.textContent = this.isPlaying ? t.pauseEvolution : t.playEvolution;
     }
   },
 
   applyStageVisuals(p) {
     const stageText = document.getElementById('evolutionStageText');
     const stageDesc = document.getElementById('evolutionStageDesc');
+    const lang = window.I18N?.currentLang || 'zh';
+    const stages = window.I18N?.dict[lang]?.stages || window.I18N?.dict.zh.stages;
 
-    let currentStage = this.stages[0];
-    if (p >= 0.85) currentStage = this.stages[3];
-    else if (p >= 0.5) currentStage = this.stages[2];
-    else if (p >= 0.2) currentStage = this.stages[1];
+    let currentStage = stages[0];
+    if (p >= 0.85) currentStage = stages[3];
+    else if (p >= 0.5) currentStage = stages[2];
+    else if (p >= 0.2) currentStage = stages[1];
 
     if (stageText) stageText.textContent = currentStage.name;
     if (stageDesc) stageDesc.textContent = currentStage.desc;
