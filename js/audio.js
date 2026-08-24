@@ -6,7 +6,7 @@ const AudioManager = {
   // 1. 空間與總線節點
   panner: null,
   masterGain: null,
-  proximityGain: null, // 🌟 距離壓迫感增益
+  proximityGain: null,
 
   // 2. 時空引力次低音與 LFO 呼吸
   humOsc: null,
@@ -23,7 +23,7 @@ const AudioManager = {
   padFilter: null,
   padGain: null,
   currentState: 'idle',
-  isSilenceActive: false, // 🌟 吞噬後的深淵留白狀態
+  isSilenceActive: false,
 
   init() {
     if (this.isInitialized) return;
@@ -31,12 +31,12 @@ const AudioManager = {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     this.ctx = new AudioContext();
 
-    // 總線增益控制
+    // 總線增益控制 (防爆音安全上限)
     this.masterGain = this.ctx.createGain();
     this.masterGain.gain.setValueAtTime(0.85, this.ctx.currentTime);
     this.masterGain.connect(this.ctx.destination);
 
-    // 距離壓迫感調製節點
+    // 距離壓迫感調製節點 (Proximity Weight)
     this.proximityGain = this.ctx.createGain();
     this.proximityGain.gain.setValueAtTime(1.0, this.ctx.currentTime);
     this.proximityGain.connect(this.masterGain);
@@ -64,7 +64,7 @@ const AudioManager = {
     this.humGain.gain.setValueAtTime(0.045, this.ctx.currentTime);
 
     this.humLFO = this.ctx.createOscillator();
-    this.humLFO.frequency.setValueAtTime(0.25, this.ctx.currentTime); // 4 秒週期引力波動
+    this.humLFO.frequency.setValueAtTime(0.25, this.ctx.currentTime); // 4 秒引力波動週期
     const lfoGain = this.ctx.createGain();
     lfoGain.gain.setValueAtTime(2.5, this.ctx.currentTime);
     this.humLFO.connect(lfoGain);
@@ -131,7 +131,7 @@ const AudioManager = {
     this.padFilter.connect(this.padGain);
     this.padGain.connect(this.proximityGain);
 
-    // 瀏覽器自動播放政策解鎖
+    // 瀏覽器自動播放政策安全解鎖 (User Gesture Resume)
     const unlockAudio = () => {
       if (this.ctx && this.ctx.state === 'suspended') {
         this.ctx.resume();
@@ -141,6 +141,23 @@ const AudioManager = {
     window.addEventListener('touchstart', unlockAudio, { once: true });
 
     this.isInitialized = true;
+  },
+
+  // UI 滑塊高頻微點擊聲 (800Hz 極短脈衝)
+  playUITick() {
+    if (!this.isInitialized || this.isMuted) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+      gain.gain.setValueAtTime(0.03, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.04);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.04);
+    } catch (e) {}
   },
 
   // 滑塊引力波脈衝 (Gravity Pulse)
@@ -174,7 +191,7 @@ const AudioManager = {
     }
   },
 
-  // 🌟 核心升級 1：聽覺距離壓迫感調製 (Proximity Weight)
+  // 聽覺距離壓迫感與方位每幀同步
   updateListenerAndParams(camera, massScale, speedFactor) {
     if (!this.isInitialized || this.isMuted || this.isSilenceActive) return;
 
@@ -184,7 +201,7 @@ const AudioManager = {
       this.ctx.listener.positionZ.setValueAtTime(camera.position.z, this.ctx.currentTime);
     }
 
-    // 視距越近，低頻壓迫感與總音量指數級增強
+    // 視距越近，低頻壓迫感與總音量調製增強
     const dist = camera.position.length();
     const proxScale = Math.min(2.0, Math.max(0.6, 25.0 / dist));
     this.proximityGain.gain.setTargetAtTime(proxScale, this.ctx.currentTime, 0.1);
@@ -229,7 +246,7 @@ const AudioManager = {
     osc.stop(this.ctx.currentTime + 0.4);
   },
 
-  // 🌟 核心升級 2：意粉化失真撕裂 + 0.5s 深淵寂靜 (The Void of Silence)
+  // 意粉化撕裂失真滑音 + 0.5s 深淵留白 (The Void of Silence)
   playSpaghettification() {
     if (!this.isInitialized || this.isMuted) return;
     this.setMusicState('spaghettification');
