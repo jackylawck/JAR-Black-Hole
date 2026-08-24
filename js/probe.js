@@ -1,162 +1,125 @@
-const ProbeManager = {
-  probes: [],
+window.ProbeManager = {
   scene: null,
-  probeGeometry: new THREE.CylinderGeometry(0.15, 0.25, 1.2, 12),
-  
+  probes: [],
+  isInitialized: false,
+
   init(scene) {
     this.scene = scene;
-    const launchBtn = document.getElementById('launchBtn');
-    if (launchBtn) {
-      launchBtn.addEventListener('click', () => this.launchProbe());
-    }
+    this.probes = [];
+    this.isInitialized = true;
   },
 
-  launchProbe() {
-    // 記憶體防護：最多同時存在 5 枚探測器，超額自動回收最舊探測器
-    if (this.probes.length >= 5) {
-      const oldest = this.probes.shift();
-      this.cleanupProbe(oldest);
-    }
+  // 發射探測器 (對接 main.js 的 launch 調用)
+  launch() {
+    if (!this.scene) return;
 
-    // 獨立材質實例化，避免多探測器色彩狀態互相污染
-    const material = new THREE.MeshStandardMaterial({ 
-      color: new THREE.Color(0xffffff),
-      emissive: new THREE.Color(0x4488ff),
-      emissiveIntensity: 0.8,
-      roughness: 0.2,
-      metalness: 0.8
+    // 1. 探測器本體 (高亮微型光子晶體)
+    const probeGeo = new THREE.SphereGeometry(0.2, 16, 16);
+    const probeMat = new THREE.MeshBasicMaterial({
+      color: 0x38bdf8,
+      wireframe: false
     });
-    
-    const probe = new THREE.Mesh(this.probeGeometry, material);
-    const angle = Math.random() * Math.PI * 2;
-    const distance = 26.0;
-    
-    probe.position.set(
-      Math.cos(angle) * distance, 
-      (Math.random() - 0.5) * 4.0, 
-      Math.sin(angle) * distance
-    );
-    probe.lookAt(0, 0, 0);
-    probe.rotateX(Math.PI / 2);
+    const probeMesh = new THREE.Mesh(probeGeo, probeMat);
 
-    this.scene.add(probe);
-    
-    // 獨立尾跡材質
+    // 2. 意粉化拖尾光束 (Spaghettification Trail)
+    const maxTrailPoints = 80;
+    const trailPositions = new Float32Array(maxTrailPoints * 3);
     const trailGeo = new THREE.BufferGeometry();
-    const trailMat = new THREE.LineBasicMaterial({ 
-      color: new THREE.Color(0x4488ff), 
-      transparent: true, 
-      opacity: 0.7 
-    });
-    const trail = new THREE.Line(trailGeo, trailMat);
-    this.scene.add(trail);
-    
-    this.probes.push({
-      mesh: probe,
-      material: material,
-      trail: trail,
-      trailMat: trailMat,
-      trailPoints: [],
-      velocity: 0.055,
-      spinSpeedX: (Math.random() - 0.5) * 2.0,
-      spinSpeedY: 2.5 + Math.random() * 2.0,
-      isCollapsing: false,
-      collapseProgress: 0.0,
-      isDestroyed: false
-    });
+    trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
 
-    // 空間定位發射音效
-    if (typeof AudioManager !== 'undefined') {
-      AudioManager.playLaunch(probe.position);
+    const trailMat = new THREE.LineBasicMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending,
+      linewidth: 2
+    });
+    const trailLine = new THREE.Line(trailGeo, trailMat);
+
+    // 初始位置：從遠處軌道向黑洞墜落
+    const initialRadius = 16.0;
+    const initialAngle = Math.random() * Math.PI * 2;
+    const startX = Math.cos(initialAngle) * initialRadius;
+    const startZ = Math.sin(initialAngle) * initialRadius;
+
+    probeMesh.position.set(startX, 0.5, startZ);
+
+    this.scene.add(probeMesh);
+    this.scene.add(trailLine);
+
+    const probe = {
+      mesh: probeMesh,
+      trail: trailLine,
+      radius: initialRadius,
+      theta: initialAngle,
+      y: 0.5,
+      radialVelocity: 0.08,
+      angularVelocity: 0.03,
+      history: [],
+      maxHistory: maxTrailPoints,
+      isDestroyed: false
+    };
+
+    this.probes.push(probe);
+
+    // 發射音效
+    if (typeof window.AudioManager !== 'undefined') {
+      window.AudioManager.playUITick?.();
     }
   },
 
-  update(massScale) {
-    const Rs = 2.0 * massScale;              // 史瓦西半徑
-    const ISCO = 6.0 * massScale;            // ISCO 內邊界 (3 Rs)
-    const tidalThreshold = 10.0 * massScale; // 10 Rs 開始漸進式潮汐力拉伸
-    const G_M = massScale * 10.0;
+  update(massScale = 1.0) {
+    if (!this.scene || this.probes.length === 0) return;
+
+    const Rs = 2.0 * massScale;
+    const ISCO = 6.0 * massScale;
 
     for (let i = this.probes.length - 1; i >= 0; i--) {
       const p = this.probes[i];
       if (p.isDestroyed) continue;
 
-      // 0.3s 極限塌縮消亡動畫
-      if (p.isCollapsing) {
-        p.collapseProgress += 0.05;
-        const shrink = Math.max(0.001, 1.0 - p.collapseProgress);
-        p.mesh.scale.multiplyScalar(shrink);
-        p.material.opacity = shrink;
-        p.trailMat.opacity = shrink * 0.5;
+      // 廣義相對論強引力加速
+      const gravityPull = (Rs * 1.8) / (p.radius * p.radius);
+      p.radialVelocity += gravityPull * 0.08;
+      p.angularVelocity += gravityPull * 0.03;
 
-        if (p.collapseProgress >= 1.0) {
-          this.cleanupProbe(p);
-          p.isDestroyed = true;
-          this.probes.splice(i, 1);
-        }
-        continue;
+      p.radius -= p.radialVelocity;
+      p.theta += p.angularVelocity;
+
+      // 意粉化（垂直方向極限拉伸，切向擠壓）
+      if (p.radius < ISCO) {
+        const tidalFactor = Math.min(6.0, ISCO / Math.max(p.radius, 0.1));
+        p.mesh.scale.set(1.0 / Math.sqrt(tidalFactor), tidalFactor, 1.0 / Math.sqrt(tidalFactor));
+        p.mesh.material.color.setHex(0xf43f5e); // 潮汐撕裂變為熾熱紅
       }
 
-      const currentR = p.mesh.position.length();
+      p.mesh.position.x = Math.cos(p.theta) * p.radius;
+      p.mesh.position.z = Math.sin(p.theta) * p.radius;
+      p.mesh.position.y *= 0.98;
 
-      // 1. 引力加速度推進 (a = GM / r^2)
-      p.velocity += (G_M / Math.pow(currentR, 2)) * 0.022;
-      const fallDir = p.mesh.position.clone().normalize().multiplyScalar(-p.velocity);
-      p.mesh.position.add(fallDir);
+      // 更新尾跡
+      p.history.unshift(p.mesh.position.clone());
+      if (p.history.length > p.maxHistory) p.history.pop();
 
-      // 2. 角動量守恆自轉加速 (越接近黑洞自轉越快)
-      const spinMultiplier = Math.min(15.0, 30.0 / Math.max(currentR, 1.0));
-      p.mesh.rotateY(p.spinSpeedY * spinMultiplier * 0.01);
-      p.mesh.rotateX(p.spinSpeedX * spinMultiplier * 0.01);
-
-      // 3. 物質尾跡點陣維護
-      p.trailPoints.push(p.mesh.position.clone());
-      if (p.trailPoints.length > 20) p.trailPoints.shift();
-      p.trail.geometry.setFromPoints(p.trailPoints);
-
-      // 4. 漸進式非線性潮汐力意粉化拉伸 (10 Rs ~ ISCO ~ Rs)
-      if (currentR < tidalThreshold) {
-        const tidalForce = (2.0 * G_M) / Math.pow(currentR, 3);
-        const stretchZ = 1.0 + Math.pow(tidalForce, 1.25) * 14.0;
-        const compressXY = 1.0 / Math.sqrt(stretchZ);
-        p.mesh.scale.set(compressXY, compressXY, stretchZ);
-
-        // 光譜紅移與尾跡顏色嚴格同步
-        const redshift = Math.max(0.0, (currentR - Rs) / (tidalThreshold - Rs));
-        
-        // 探測器本體顏色演化：冷白藍 -> 高溫橙紅 -> 瀕死暗紅
-        const targetColor = new THREE.Color(0xffffff).lerp(new THREE.Color(0x330000), 1.0 - redshift);
-        const targetEmissive = new THREE.Color(0x4488ff).lerp(new THREE.Color(0x110000), 1.0 - redshift);
-        
-        p.material.color.copy(targetColor);
-        p.material.emissive.copy(targetEmissive);
-
-        // 尾跡同步紅移與淡出
-        p.trailMat.color.copy(targetColor);
-        p.trailMat.opacity = Math.max(0.05, redshift * 0.7);
+      const positions = p.trail.geometry.attributes.position.array;
+      for (let j = 0; j < p.history.length; j++) {
+        positions[j * 3] = p.history[j].x;
+        positions[j * 3 + 1] = p.history[j].y;
+        positions[j * 3 + 2] = p.history[j].z;
       }
+      p.trail.geometry.attributes.position.needsUpdate = true;
 
-      // 5. 跨越事件視界 (r <= Rs) 進入塌縮階段
-      if (currentR <= Rs && !p.isCollapsing) {
-        p.isCollapsing = true;
-
-        // 觸發意粉化失真音效與 0.5s 全頻深淵留白
-        if (typeof AudioManager !== 'undefined') {
-          AudioManager.playSpaghettification();
-        }
+      // 穿越事件視界：完全被黑洞吞噬銷毀
+      if (p.radius <= Rs) {
+        this.scene.remove(p.mesh);
+        this.scene.remove(p.trail);
+        p.mesh.geometry.dispose();
+        p.mesh.material.dispose();
+        p.trail.geometry.dispose();
+        p.trail.material.dispose();
+        p.isDestroyed = true;
+        this.probes.splice(i, 1);
       }
-    }
-  },
-
-  cleanupProbe(p) {
-    if (p.mesh) {
-      this.scene.remove(p.mesh);
-      if (p.material) p.material.dispose();
-    }
-    if (p.trail) {
-      this.scene.remove(p.trail);
-      if (p.trail.geometry) p.trail.geometry.dispose();
-      if (p.trailMat) p.trailMat.dispose();
     }
   }
 };
