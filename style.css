@@ -44,16 +44,16 @@ body {
    ============================================================ */
 .probe-pip-deck {
   position: fixed;
-  top: 70px;
-  right: 12px;
-  width: min(200px, 34vw);
-  height: calc(min(200px, 34vw) * 0.72);
+  top: 60px;
+  right: 14px;
+  width: min(210px, 35vw);
+  height: calc(min(210px, 35vw) * 0.72);
   z-index: 25;
   border: 1px solid rgba(56, 189, 248, 0.45);
-  background: rgba(2, 6, 23, 0.55);
-  backdrop-filter: blur(10px);
+  background: rgba(2, 6, 23, 0.65);
+  backdrop-filter: blur(12px);
   border-radius: 8px;
-  padding: 4px 6px;
+  padding: 5px 8px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -61,7 +61,7 @@ body {
   opacity: 0;
   transform: scale(0.9) translateY(-10px);
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.2);
   overflow: hidden;
 }
 
@@ -70,79 +70,42 @@ body {
   transform: scale(1) translateY(0);
 }
 
-.probe-pip-deck::before {
-  content: " ";
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: repeating-linear-gradient(0deg, rgba(56, 189, 248, 0.04), rgba(56, 189, 248, 0.04) 1px, transparent 1px, transparent 3px);
-  pointer-events: none;
-  z-index: 2;
-}
-
 .pip-crosshair {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  width: 20px; height: 20px;
+  width: 22px; height: 22px;
   border: 1px solid rgba(56, 189, 248, 0.35);
   border-radius: 50%;
   pointer-events: none;
-  z-index: 3;
 }
-
-.pip-crosshair::before, .pip-crosshair::after {
-  content: ""; position: absolute; background: rgba(56, 189, 248, 0.6);
-}
-.pip-crosshair::before { top: -3px; bottom: -3px; left: 50%; width: 1px; transform: translateX(-50%); }
-.pip-crosshair::after { left: -3px; right: -3px; top: 50%; height: 1px; transform: translateY(-50%); }
-
-.pip-chassis-overlay {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.pip-antenna-left, .pip-antenna-right {
-  position: absolute; bottom: 0; width: 2px; height: 16px;
-  background: linear-gradient(180deg, #38bdf8 0%, rgba(56, 189, 248, 0.1) 100%);
-  box-shadow: 0 0 6px #38bdf8;
-}
-.pip-antenna-left { left: 16%; transform: rotate(15deg); }
-.pip-antenna-right { right: 16%; transform: rotate(-15deg); }
-
-.pip-wing-left, .pip-wing-right {
-  position: absolute; bottom: -3px; width: 24px; height: 8px;
-  background: rgba(8, 15, 38, 0.8);
-  border: 1px solid rgba(56, 189, 248, 0.4);
-}
-.pip-wing-left { left: -4px; transform: skewX(35deg); border-right: none; border-bottom: none; }
-.pip-wing-right { right: -4px; transform: skewX(-35deg); border-left: none; border-bottom: none; }
 
 .pip-header {
   display: flex; justify-content: space-between; align-items: center; z-index: 3;
 }
 .pip-title-wrap { display: flex; align-items: center; gap: 4px; }
 .pip-live-dot {
-  width: 4px; height: 4px; border-radius: 50%; background: #f43f5e; box-shadow: 0 0 6px #f43f5e; animation: pulseDot 0.8s infinite;
+  width: 5px; height: 5px; border-radius: 50%; background: #f43f5e; box-shadow: 0 0 8px #f43f5e; animation: pulseDot 0.8s infinite;
 }
-.pip-title { font-family: 'SF Mono', monospace; font-size: 0.46rem; font-weight: 800; color: #38bdf8; }
+@keyframes pulseDot { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+.pip-title { font-family: 'SF Mono', monospace; font-size: 0.48rem; font-weight: 800; color: #38bdf8; }
 .pip-status-tag {
   font-family: 'SF Mono', monospace; font-size: 0.42rem; color: #fbbf24;
-  background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.3); padding: 1px 3px; border-radius: 3px;
+  background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.3); padding: 1px 4px; border-radius: 3px;
 }
 
 .pip-dashboard-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 1px 3px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 2px 4px;
   font-family: 'SF Mono', monospace; font-size: 0.42rem; color: #94a3b8;
-  z-index: 3; background: rgba(2, 6, 23, 0.7); padding: 2px 4px; border-radius: 4px;
+  background: rgba(2, 6, 23, 0.7); padding: 2px 4px; border-radius: 4px;
 }
 .pip-metric-item { display: flex; justify-content: space-between; }
 .pip-metric-item .val { color: #f8fafc; font-weight: 700; }
 .pip-metric-item .val-hot { color: #f43f5e; text-shadow: 0 0 6px rgba(244, 63, 94, 0.6); }
 
 /* ============================================================
-   2. 頂部常駐：實時物理遙測看板 (Top Telemetry Bar)
+   2. 頂部極簡狀態列 (Top Status Bar)
    ============================================================ */
 .top-hud-bar {
   position: fixed;
@@ -150,126 +113,110 @@ body {
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
-  width: min(920px, 96vw);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  background: rgba(6, 12, 30, 0.78);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(56, 189, 248, 0.2);
-  border-radius: 12px;
-  padding: 6px 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-}
-
-.top-nav-row {
+  width: min(880px, 95vw);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  background: rgba(6, 12, 30, 0.6);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  border-radius: 8px;
+  padding: 4px 12px;
 }
 
 .sys-status { display: flex; align-items: center; gap: 5px; }
-.status-dot {
-  width: 5px; height: 5px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 8px #38bdf8; animation: pulseDot 2s infinite ease-in-out;
-}
-@keyframes pulseDot { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-
-.status-text {
-  font-size: 0.48rem; font-weight: 800; letter-spacing: 1px; color: #64748b; font-family: 'SF Mono', monospace;
-}
+.status-dot { width: 5px; height: 5px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 8px #38bdf8; }
+.status-text { font-size: 0.48rem; font-weight: 800; letter-spacing: 1px; color: #64748b; font-family: 'SF Mono', monospace; }
 
 .mode-switcher {
   display: flex; background: rgba(0, 0, 0, 0.4); border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.08); padding: 1px;
 }
 .mode-btn {
-  background: transparent; border: none; color: #64748b; font-size: 0.5rem; font-weight: 700; padding: 2px 7px; border-radius: 3px; cursor: pointer;
+  background: transparent; border: none; color: #64748b; font-size: 0.5rem; font-weight: 700; padding: 2px 8px; border-radius: 3px; cursor: pointer;
 }
-.mode-btn.active {
-  background: linear-gradient(135deg, #0284c7, #7c3aed); color: #fff; box-shadow: 0 0 8px rgba(56, 189, 248, 0.35);
-}
+.mode-btn.active { background: linear-gradient(135deg, #0284c7, #7c3aed); color: #fff; }
 
 .top-mission-pill {
   font-size: 0.52rem; color: #94a3b8; font-family: 'SF Mono', monospace;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%;
 }
 .top-mission-pill .highlight { color: #fbbf24; font-weight: 700; }
 
 .lang-switcher { display: flex; gap: 2px; }
 .lang-btn {
-  background: transparent; border: 1px solid rgba(255, 255, 255, 0.08); color: #64748b; font-size: 0.48rem; font-weight: 600; padding: 1px 4px; border-radius: 3px; cursor: pointer;
+  background: transparent; border: 1px solid rgba(255, 255, 255, 0.08); color: #64748b; font-size: 0.48rem; font-weight: 600; padding: 1px 5px; border-radius: 3px; cursor: pointer;
 }
 .lang-btn.active { border-color: #38bdf8; color: #f8fafc; }
 
-/* 頂部實時數據膠囊看板 */
-.top-telemetry-capsules {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 6px;
-  align-items: center;
-  padding-top: 3px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.telemetry-pill {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: rgba(15, 23, 42, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 6px;
-  padding: 2px 4px;
-}
-
-.pill-label {
-  font-size: 0.42rem; color: #64748b; text-transform: uppercase; font-family: 'SF Mono', monospace; font-weight: 700;
-}
-
-.pill-val { font-family: 'SF Mono', monospace; font-size: 0.88rem; font-weight: 800; line-height: 1.1; }
-.pill-val small { font-size: 0.48rem; opacity: 0.6; }
-
-.val-white { color: #f8fafc; }
-.val-cyan { color: #38bdf8; text-shadow: 0 0 6px rgba(56, 189, 248, 0.4); }
-.val-purple { color: #c084fc; text-shadow: 0 0 6px rgba(192, 132, 252, 0.4); }
-.val-amber { color: #fbbf24; text-shadow: 0 0 6px rgba(251, 191, 36, 0.4); }
-
-.val-chip {
-  font-family: 'SF Mono', monospace; font-size: 0.48rem; font-weight: 800; padding: 0 4px; border-radius: 3px;
-}
-.val-chip.status-stable { color: #38bdf8; background: rgba(56, 189, 248, 0.1); }
-.val-chip.status-warning { color: #fbbf24; background: rgba(251, 191, 36, 0.12); }
-.val-chip.status-critical { color: #f43f5e; background: rgba(244, 63, 94, 0.15); animation: criticalFlash 0.5s infinite alternate; }
-@keyframes criticalFlash { 0% { opacity: 0.7; } 100% { opacity: 1; filter: brightness(1.5); } }
-
 /* ============================================================
-   3. 底部超窄常駐：操控與發射指令欄 (Bottom Command Bar)
+   3. 🌟 底部一體化 3A 級太空艙控制台 (Bottom Cockpit HUD)
    ============================================================ */
 .bottom-hud-bar {
   position: fixed;
-  bottom: env(safe-area-inset-bottom, 8px);
+  bottom: env(safe-area-inset-bottom, 10px);
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
-  width: min(840px, 96vw);
+  width: min(840px, 95vw);
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  background: rgba(6, 12, 30, 0.82);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(56, 189, 248, 0.2);
-  border-radius: 12px;
-  padding: 6px 12px;
-  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.8);
+  gap: 6px;
+  background: linear-gradient(180deg, rgba(8, 15, 38, 0.82) 0%, rgba(4, 8, 20, 0.96) 100%);
+  backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-top: 1px solid rgba(125, 211, 252, 0.5);
+  border-radius: 14px;
+  padding: 8px 14px 8px;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.85), 0 0 25px rgba(56, 189, 248, 0.08);
 }
 
+/* 核心數據甲板 */
+.telemetry-deck-row {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr 0.9fr 0.9fr 0.9fr;
+  gap: 6px;
+}
+
+.telemetry-card {
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 6px;
+  padding: 4px 6px;
+  text-align: center;
+}
+
+.telemetry-card.primary-reactor {
+  background: radial-gradient(circle at center, rgba(56, 189, 248, 0.12) 0%, rgba(15, 23, 42, 0.65) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.telemetry-card .deck-tag {
+  font-size: 0.44rem; color: #64748b; text-transform: uppercase; font-family: 'SF Mono', monospace; font-weight: 700;
+}
+.telemetry-card.primary-reactor .deck-tag { color: #38bdf8; }
+
+.telemetry-card .deck-val { font-family: 'SF Mono', monospace; font-size: 1.05rem; font-weight: 800; line-height: 1.1; }
+.telemetry-card.primary-reactor .deck-val { font-size: 1.25rem; color: #f8fafc; }
+.telemetry-card .deck-val small { font-size: 0.5rem; opacity: 0.6; }
+
+.val-cyan { color: #38bdf8; text-shadow: 0 0 8px rgba(56, 189, 248, 0.4); }
+.val-purple { color: #c084fc; text-shadow: 0 0 8px rgba(192, 132, 252, 0.4); }
+.val-amber { color: #fbbf24; text-shadow: 0 0 8px rgba(251, 191, 36, 0.4); }
+
+.val-chip {
+  font-family: 'SF Mono', monospace; font-size: 0.48rem; font-weight: 800; padding: 1px 4px; border-radius: 3px;
+}
+.val-chip.status-stable { color: #38bdf8; background: rgba(56, 189, 248, 0.1); }
+.val-chip.status-warning { color: #fbbf24; background: rgba(251, 191, 36, 0.12); }
+.val-chip.status-critical { color: #f43f5e; background: rgba(244, 63, 94, 0.15); }
+
+/* 恆星演化控制條 */
 .bottom-evolution-strip {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  padding-bottom: 3px;
+  padding: 3px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -294,6 +241,7 @@ body {
   outline: none;
 }
 
+/* 底部滑塊與發射按鈕 */
 .bottom-controls-strip {
   display: grid;
   grid-template-columns: 1.2fr 1.2fr 1.5fr;
@@ -304,20 +252,18 @@ body {
 .mini-slider-box { display: flex; flex-direction: column; gap: 1px; }
 .slider-info { display: flex; justify-content: space-between; align-items: center; }
 .slider-info label { font-size: 0.48rem; color: #94a3b8; font-weight: 700; }
-.slider-badge {
-  font-family: 'SF Mono', monospace; font-size: 0.48rem; font-weight: 800; color: #38bdf8;
-}
+.slider-badge { font-family: 'SF Mono', monospace; font-size: 0.48rem; font-weight: 800; color: #38bdf8; }
 
 input[type="range"] {
   -webkit-appearance: none; width: 100%; height: 2px; background: rgba(255, 255, 255, 0.08); outline: none;
 }
 input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%; background: #38bdf8; cursor: pointer; margin-top: -4px;
+  -webkit-appearance: none; width: 11px; height: 11px; border-radius: 50%; background: #38bdf8; cursor: pointer; margin-top: -4.5px;
 }
 
 .bottom-launch-action {
-  position: relative; width: 100%; padding: 6px 10px; background: linear-gradient(135deg, #0284c7, #7c3aed);
-  border: 1px solid rgba(125, 211, 252, 0.4); border-radius: 6px; color: #ffffff; font-size: 0.64rem; font-weight: 800; cursor: pointer; overflow: hidden; white-space: nowrap;
+  position: relative; width: 100%; padding: 7px 10px; background: linear-gradient(135deg, #0284c7, #7c3aed);
+  border: 1px solid rgba(125, 211, 252, 0.4); border-radius: 6px; color: #ffffff; font-size: 0.65rem; font-weight: 800; cursor: pointer; overflow: hidden; white-space: nowrap;
 }
 
 .btn-glow {
@@ -327,49 +273,22 @@ input[type="range"]::-webkit-slider-thumb {
 @keyframes pulseGlow { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.8; } }
 
 /* ============================================================
-   📱 4. 橫屏專屬：左右兩翼佈局 (Landscape Side Wings)
+   📱 4. 手機直屏與橫屏優化
    ============================================================ */
-@media (orientation: landscape) and (max-height: 520px) {
-  .top-hud-bar {
-    top: 6px;
-    width: 96vw;
-    padding: 3px 8px;
-    gap: 2px;
-  }
-  .top-telemetry-capsules {
-    gap: 4px;
-    grid-template-columns: repeat(6, 1fr);
-  }
-  .pill-val { font-size: 0.76rem; }
-
-  .bottom-hud-bar {
-    bottom: 4px;
-    width: 96vw;
-    padding: 3px 8px;
-    gap: 2px;
-  }
-  .bottom-controls-strip {
-    grid-template-columns: 1fr 1fr 1.2fr;
-    gap: 6px;
-  }
-  .bottom-launch-action { padding: 4px 8px; font-size: 0.56rem; }
-  .evo-mini-meta { font-size: 0.46rem; }
+@media (max-width: 640px) and (orientation: portrait) {
+  .top-mission-pill { display: none; }
+  .bottom-hud-bar { bottom: 6px; width: 96vw; padding: 6px 10px; gap: 4px; }
+  .telemetry-deck-row { grid-template-columns: 1.2fr 1fr 1fr; gap: 4px; }
+  .telemetry-card.sub-pill { display: none; }
+  .bottom-controls-strip { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .bottom-launch-action { grid-column: span 2; padding: 8px; }
 }
 
-@media (max-width: 640px) and (orientation: portrait) {
-  .top-telemetry-capsules {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 4px;
-  }
-  .top-telemetry-capsules .sub-pill { display: none; }
-  .top-mission-pill { display: none; }
-
-  .bottom-controls-strip {
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-  }
-  .bottom-launch-action {
-    grid-column: span 2;
-    padding: 8px;
-  }
+@media (orientation: landscape) and (max-height: 520px) {
+  .top-hud-bar { top: 4px; width: 96vw; padding: 2px 8px; }
+  .bottom-hud-bar { bottom: 4px; width: 96vw; padding: 4px 8px; gap: 3px; }
+  .telemetry-deck-row { grid-template-columns: repeat(6, 1fr); gap: 4px; }
+  .telemetry-card .deck-val { font-size: 0.8rem; }
+  .bottom-controls-strip { grid-template-columns: 1fr 1fr 1.2fr; gap: 6px; }
+  .bottom-launch-action { padding: 4px 8px; font-size: 0.56rem; }
 }
