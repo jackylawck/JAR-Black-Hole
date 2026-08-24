@@ -4,56 +4,52 @@ window.I18N = {
 
   dict: {
     zh: {
-      basic: {
-        title: "J.A.R. 黑洞大冒險 🚀",
-        subtitle: "宇宙神秘黑洞探索系統",
-        massLabel: "黑洞重量 (太陽倍數)",
-        speedLabel: "旋轉速度",
-        iscoText: "安全觀測邊界",
-        photonText: "光線轉彎圓環",
-        massTitle: "黑洞重量",
-        launchBtn: "🚀 發射探測小飛船",
-        noteText: "* 太靠近黑洞會被強大引力扯成拉麵（意粉化）！",
-        voiceWelcome: "J.A.R. 艦載助理已啟動！今天我們一起探索宇宙中最神奇的黑洞！"
-      },
-      pro: {
-        title: "J.A.R. 數值相對論黑洞終端 ⚛️",
-        subtitle: "GR Tensor Metric Solver // Real-Time Geodesic Engine",
-        massLabel: "引力質量 M (M☉)",
-        speedLabel: "吸積盤角動量 (c)",
-        iscoText: "ISCO 軌道 (r_isco)",
-        photonText: "光子球半徑 (r_ph)",
-        massTitle: "幾何質量 M",
-        launchBtn: "📡 注入測地線遙測探針 (RK4 Geodesic)",
-        noteText: "* 測地線於 r < r_isco 區域失去約束，四維動量切向量直墜事件視界 r_+。",
-        voiceWelcome: "J.A.R. 相對論科研終端已鎖定。克爾度規張量初始化完畢。"
-      }
+      brandTitle: "J.A.R. 黑洞 3D",
+      brandSubtitle: "廣義相對論實時模擬器",
+      modeBasic: "🚀 探索模式",
+      modePro: "⚛️ 科研模式",
+      drawerTitle: "⚙️ 控制台 (點擊展開/收起)",
+      mobMass: "質量",
+      mobIsco: "ISCO",
+      mobStage: "演化階段",
+      missionBadge: "MISSION",
+      missionText: "任務：發射探測器收集 3 顆相對論光譜數據！",
+      massTitle: "引力質量",
+      iscoTitle: "ISCO 軌道",
+      photonTitle: "光子球臨界",
+      massLabel: "質量調節",
+      speedLabel: "自轉速度",
+      launchBtn: "🚀 發射探測器 (意粉化遙測)",
+      noteText: "* 當物質穿越 ISCO (最內穩定圓軌道) 後，軌道失去穩定性直墜事件視界。",
+      evoTitle: "🌌 恆星演化歷程",
+      evoPrev: "⏮ 上一階段",
+      evoPlay: "▶ 演化播放",
+      evoPause: "⏸ 暫停",
+      evoNext: "⏭ 下一階段"
     },
     en: {
-      basic: {
-        title: "J.A.R. Black Hole Adventure 🚀",
-        subtitle: "Space Explorer Simulator",
-        massLabel: "Black Hole Mass",
-        speedLabel: "Spin Speed",
-        iscoText: "Safe Orbit Zone",
-        photonText: "Light Bending Ring",
-        massTitle: "Core Mass",
-        launchBtn: "🚀 Launch Little Probe",
-        noteText: "* Getting too close will stretch the probe like spaghetti!",
-        voiceWelcome: "J.A.R. Space Assistant active! Let's explore the cosmic black hole!"
-      },
-      pro: {
-        title: "J.A.R. General Relativity Terminal ⚛️",
-        subtitle: "Tensor Metric Solver // RK4 Geodesic Stream",
-        massLabel: "Gravitational Mass M (M☉)",
-        speedLabel: "Disk Angular Velocity (c)",
-        iscoText: "ISCO Radius (r_isco)",
-        photonText: "Photon Sphere (r_ph)",
-        massTitle: "Metric Mass M",
-        launchBtn: "📡 Inject Telemetry Probe (RK4 Geodesic)",
-        noteText: "* Geodesics become unconstrained inside r < r_isco, plunging past r_+.",
-        voiceWelcome: "Relativistic core online. Metric tensor initialized."
-      }
+      brandTitle: "J.A.R. Black Hole 3D",
+      brandSubtitle: "General Relativity Real-Time Simulator",
+      modeBasic: "🚀 Explorer",
+      modePro: "⚛️ Research",
+      drawerTitle: "⚙️ Console (Tap to Expand/Collapse)",
+      mobMass: "MASS",
+      mobIsco: "ISCO",
+      mobStage: "STAGE",
+      missionBadge: "MISSION",
+      missionText: "Mission: Launch probes to capture 3 relativistic spectral data points!",
+      massTitle: "Core Mass",
+      iscoTitle: "ISCO Orbit",
+      photonTitle: "Photon Sphere",
+      massLabel: "Mass Tuning",
+      speedLabel: "Spin Speed",
+      launchBtn: "🚀 Launch Probe (Spaghettification)",
+      noteText: "* Inside ISCO (Innermost Stable Circular Orbit), orbital stability is lost into the horizon.",
+      evoTitle: "🌌 Stellar Evolution Timeline",
+      evoPrev: "⏮ Prev Stage",
+      evoPlay: "▶ Play Evolution",
+      evoPause: "⏸ Pause",
+      evoNext: "⏭ Next Stage"
     }
   },
 
@@ -66,15 +62,15 @@ window.I18N = {
   setLang(lang) {
     this.currentLang = lang;
     this.updateUI();
+    if (typeof window.EvolutionManager !== 'undefined') {
+      window.EvolutionManager.syncUI();
+    }
   },
 
-  // 🌟 玩法與規則差異化控制
   applyModeRules() {
     const massRange = document.getElementById('massRange');
     if (!massRange) return;
-
     if (this.currentMode === 'basic') {
-      // 探索者模式：限制安全範圍 1.0 - 3.0 M☉
       massRange.min = "1.0";
       massRange.max = "3.0";
       if (parseFloat(massRange.value) > 3.0) {
@@ -82,33 +78,62 @@ window.I18N = {
         massRange.dispatchEvent(new Event('input'));
       }
     } else {
-      // 科研者模式：解鎖極限引力 1.0 - 10.0 M☉
       massRange.min = "1.0";
-      massRange.max = "10.0";
+      massRange.max = "5.0";
     }
   },
 
   updateUI() {
-    const data = this.dict[this.currentLang][this.currentMode];
-    
-    const titleEl = document.getElementById('ui-title');
-    const subEl = document.getElementById('ui-subtitle');
-    const massLbl = document.getElementById('label-mass');
-    const speedLbl = document.getElementById('label-speed');
-    const iscoLbl = document.getElementById('label-isco');
-    const photonLbl = document.getElementById('label-photon');
-    const massTitle = document.getElementById('label-mass-title');
-    const launchTxt = document.getElementById('btn-launch-text');
-    const noteEl = document.getElementById('ui-note');
+    const d = this.dict[this.currentLang];
+    const setText = (id, text) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    };
 
-    if (titleEl) titleEl.textContent = data.title;
-    if (subEl) subEl.textContent = data.subtitle;
-    if (massLbl) massLbl.textContent = data.massLabel;
-    if (speedLbl) speedLbl.textContent = data.speedLabel;
-    if (iscoLbl) iscoLbl.textContent = data.iscoText;
-    if (photonLbl) photonLbl.textContent = data.photonText;
-    if (massTitle) massTitle.textContent = data.massTitle;
-    if (launchTxt) launchTxt.textContent = data.launchBtn;
-    if (noteEl) noteEl.textContent = data.noteText;
+    // 官方品牌標題
+    setText('ui-title', d.brandTitle);
+    setText('ui-subtitle', d.brandSubtitle);
+
+    // 模式切換按鈕
+    setText('mode-basic', d.modeBasic);
+    setText('mode-pro', d.modePro);
+
+    // 手機頂部標籤
+    const mobChips = document.querySelectorAll('.mobile-hud-bar .chip-label');
+    if (mobChips.length >= 3) {
+      mobChips[0].textContent = d.mobMass;
+      mobChips[1].textContent = d.mobIsco;
+      mobChips[2].textContent = d.mobStage;
+    }
+
+    // 抽屜標題
+    const drawerTitle = document.querySelector('.handle-title');
+    if (drawerTitle) drawerTitle.textContent = d.drawerTitle;
+
+    // 任務與遙測大字
+    const missionBadge = document.querySelector('.mission-badge');
+    if (missionBadge) missionBadge.textContent = d.missionBadge;
+    setText('missionText', d.missionText);
+
+    setText('label-mass-title', d.massTitle);
+    setText('label-isco', d.iscoTitle);
+    setText('label-photon', d.photonTitle);
+
+    // 控制項與註腳
+    setText('label-mass', d.massLabel);
+    setText('label-speed', d.speedLabel);
+    setText('btn-launch-text', d.launchBtn);
+    setText('ui-note', d.noteText);
+
+    // 演化控制器
+    const evoTitle = document.querySelector('.evolution-title');
+    if (evoTitle) evoTitle.textContent = d.evoTitle;
+    setText('prevStageBtn', d.evoPrev);
+    setText('nextStageBtn', d.evoNext);
+
+    const playBtn = document.getElementById('playPauseBtn');
+    if (playBtn && typeof window.EvolutionManager !== 'undefined') {
+      playBtn.textContent = window.EvolutionManager.isPlaying ? d.evoPause : d.evoPlay;
+    }
   }
 };
