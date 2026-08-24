@@ -28,131 +28,110 @@
   <!-- 深空背景 -->
   <div id="starfield-bg" aria-hidden="true"></div>
 
-  <!-- 3D 渲染畫布容器 -->
+  <!-- 3D 渲染容器 -->
   <main id="canvas-container" role="main"></main>
 
-  <!-- 🌟 頂部常駐實時數據與模式列 (Top HUD) -->
-  <header id="top-hud" class="top-hud-bar">
-    <div class="top-left-controls">
-      <div class="sys-status">
-        <span class="status-dot"></span>
-        <span class="status-text">HUD ONLINE</span>
+  <!-- 3A 駕駛艙 HUD 主容器 -->
+  <aside class="hud-main" id="ui-panel" aria-label="黑洞全息駕駛艙終端">
+    <!-- 頂部狀態列 -->
+    <div class="hud-top-row">
+      <div class="hud-left-group">
+        <div class="sys-status">
+          <span class="status-dot"></span>
+          <span class="status-text">COCKPIT HUD // ONLINE</span>
+        </div>
+        <div class="mode-switcher" role="radiogroup">
+          <button id="mode-basic" class="mode-btn active" type="button">🚀 探索模式</button>
+          <button id="mode-pro" class="mode-btn" type="button">⚛️ 科研模式</button>
+        </div>
+        <nav class="lang-switcher">
+          <button id="btn-zh" class="lang-btn active" type="button">繁中</button>
+          <button id="btn-en" class="lang-btn" type="button">EN</button>
+        </nav>
       </div>
-      <div class="mode-switcher" role="radiogroup">
-        <button id="mode-basic" class="mode-btn active" type="button">🚀 探索模式</button>
-        <button id="mode-pro" class="mode-btn" type="button">⚛️ 科研模式</button>
-      </div>
-    </div>
 
-    <!-- 實時數據膠囊看板 -->
-    <div class="telemetry-capsules">
-      <div class="cap-item">
-        <span class="cap-lbl" id="label-mass-title">質量</span>
-        <span class="cap-val white-val" id="massValDisplay">2.5 <small>M☉</small></span>
-      </div>
-      <div class="cap-item">
-        <span class="cap-lbl" id="label-isco">ISCO</span>
-        <span class="cap-val cyan-val" id="iscoVal">15.0 <small>Rs</small></span>
-      </div>
-      <div class="cap-item">
-        <span class="cap-lbl" id="label-photon">光子球</span>
-        <span class="cap-val purple-val" id="photonVal">7.5 <small>Rs</small></span>
+      <div class="hud-right-group">
+        <div id="missionText" class="mission-text">
+          任務：發射探測器收集 <span class="highlight">3 顆相對論光譜</span>！
+        </div>
       </div>
     </div>
 
-    <nav class="lang-switcher">
-      <button id="btn-zh" class="lang-btn active" type="button">繁中</button>
-      <button id="btn-en" class="lang-btn" type="button">EN</button>
-    </nav>
-  </header>
+    <!-- 核心數據 HUD -->
+    <section class="core-hud" aria-label="核心物理遙測">
+      <div class="core-item">
+        <div class="lbl" id="label-mass-title">引力質量</div>
+        <div class="val val-white" id="massValDisplay">2.5 <small>M☉</small></div>
+      </div>
+      <div class="core-item">
+        <div class="lbl" id="label-isco">ISCO 軌道</div>
+        <div class="val val-cyan" id="iscoVal">15.0 <small>Rs</small></div>
+      </div>
+      <div class="core-item">
+        <div class="lbl" id="label-photon">光子球臨界</div>
+        <div class="val val-purple" id="photonVal">7.5 <small>Rs</small></div>
+      </div>
+      <div class="core-item secondary">
+        <div class="lbl">都卜勒因子</div>
+        <div class="val val-cyan" id="telemetryDoppler">1.42 <small>δ</small></div>
+      </div>
+      <div class="core-item secondary">
+        <div class="lbl">引力紅移</div>
+        <div class="val val-gold" id="telemetryRedshift">1.28 <small>1+z</small></div>
+      </div>
+    </section>
 
-  <!-- 🌟 可完全捲起 / 展開的控制台抽屜 (Collapsible Drawer) -->
-  <aside id="ui-drawer" class="drawer-closed" aria-label="黑洞全息控制面板">
-    <div class="drawer-inner">
-      <header class="hud-header">
-        <h1 id="ui-title">J.A.R. 黑洞 3D</h1>
-        <h2 id="ui-subtitle">廣義相對論實時模擬器</h2>
-      </header>
+    <!-- 演化時間軸 -->
+    <section class="evolution-drawer" aria-label="恆星演化歷程">
+      <div class="evo-header">
+        <span class="evo-title">🌌 恆星演化歷程</span>
+        <span id="evolutionStageText" class="evo-stage">黑洞奇異點 (事件視界與吸積盤)</span>
+      </div>
+      <div id="evolutionStageDesc" class="evo-desc">
+        殘餘核心質量突破歐本海默極限，核心徹底塌縮形成事件視界。
+      </div>
+      <input type="range" id="evolutionSlider" min="0" max="1" step="0.002" value="1.0" aria-label="演化時間軸">
+      <div class="evo-actions">
+        <button type="button" id="prevStageBtn">⏮ 上一階段</button>
+        <button type="button" id="playPauseBtn" class="play-btn">▶ 演化播放</button>
+        <button type="button" id="nextStageBtn">⏭ 下一階段</button>
+      </div>
+    </section>
 
-      <!-- 任務 HUD -->
-      <div class="mission-hud">
-        <span class="mission-badge">MISSION</span>
-        <div id="missionText" class="mission-text">任務：發射探測器收集 3 顆相對論光譜數據！</div>
+    <!-- 底部控制區 -->
+    <section class="control-row" aria-label="操控參數">
+      <div class="control-group">
+        <div class="ctrl-header">
+          <label for="massRange" id="label-mass">質量調節</label>
+          <span id="massVal" class="badge">2.5 M☉</span>
+        </div>
+        <input type="range" id="massRange" min="1.0" max="3.0" step="0.1" value="2.5">
       </div>
 
-      <!-- 科研模式專屬串流 -->
-      <div class="pro-terminal-stream">
-        <div class="terminal-line">
-          <span>METRIC: SCHWARZSCHILD</span>
-          <span id="metricStatus">g_00 = -(1 - 2M/r)</span>
+      <div class="control-group">
+        <div class="ctrl-header">
+          <label for="speedRange" id="label-speed">自轉速度</label>
+          <span id="speedVal" class="badge">1.0 c</span>
         </div>
-        <div class="terminal-line">
-          <span>DOPPLER BEAMING (δ):</span>
-          <span id="telemetryDoppler">1.420</span>
+        <input type="range" id="speedRange" min="0.1" max="3.0" step="0.1" value="1.0">
+      </div>
+
+      <div class="control-group">
+        <div class="ctrl-header">
+          <label>視界狀態</label>
+          <span class="badge" id="horizonState">STABLE</span>
         </div>
-        <div class="terminal-line">
-          <span>REDSHIFT (1+z):</span>
-          <span id="telemetryRedshift">1.280</span>
+        <div style="font-size:0.5rem; color:#64748b; padding-top:2px;">
+          r_+ = 2GM/c²
         </div>
       </div>
 
-      <!-- 恆星演化時間軸 -->
-      <section class="evolution-controller">
-        <div class="evolution-header">
-          <span class="evolution-title">🌌 恆星演化歷程</span>
-          <span id="evolutionStageText" class="evolution-stage-badge">黑洞奇異點</span>
-        </div>
-        <div id="evolutionStageDesc" class="evolution-desc">
-          殘餘核心質量突破歐本海默極限，形成事件視界。
-        </div>
-        <div class="timeline-bar-wrapper">
-          <input type="range" id="evolutionSlider" min="0" max="1" step="0.002" value="1.0">
-        </div>
-        <div class="timeline-actions">
-          <button type="button" id="prevStageBtn" class="timeline-btn">⏮ 上一階段</button>
-          <button type="button" id="playPauseBtn" class="timeline-btn play-btn">▶ 演化播放</button>
-          <button type="button" id="nextStageBtn" class="timeline-btn">⏭ 下一階段</button>
-        </div>
-      </section>
-
-      <!-- 參數滑塊組 -->
-      <section class="controls-grid">
-        <div class="control-group">
-          <div class="control-header">
-            <label for="massRange" id="label-mass">質量調節</label>
-            <span id="massVal" class="val-badge purple-badge">2.5 M☉</span>
-          </div>
-          <input type="range" id="massRange" min="1.0" max="3.0" step="0.1" value="2.5">
-        </div>
-
-        <div class="control-group">
-          <div class="control-header">
-            <label for="speedRange" id="label-speed">自轉速度</label>
-            <span id="speedVal" class="val-badge cyan-badge">1.0 c</span>
-          </div>
-          <input type="range" id="speedRange" min="0.1" max="3.0" step="0.1" value="1.0">
-        </div>
-      </section>
-
-      <footer class="hud-footer">
-        <div class="stat-row note" id="ui-note">
-          * 當物質穿越 ISCO (最內穩定圓軌道) 後，軌道失去穩定性直墜事件視界。
-        </div>
-      </footer>
-    </div>
+      <button id="launchBtn" type="button" aria-label="發射探測器">
+        <div class="btn-glow"></div>
+        <span id="btn-launch-text">🚀 發射探測器</span>
+      </button>
+    </section>
   </aside>
-
-  <!-- 🌟 底部常駐快捷列 (Bottom Quick Bar) -->
-  <footer id="bottom-bar" class="bottom-quick-bar">
-    <button id="toggleDrawerBtn" class="action-btn secondary-btn" type="button">
-      <span id="drawerToggleIcon">⚙️</span>
-      <span id="drawerToggleText">展開控制台</span>
-    </button>
-    <button id="launchBtn" class="action-btn primary-btn" type="button">
-      <div class="btn-glow"></div>
-      <span id="btn-launch-text">🚀 發射探測器</span>
-    </button>
-  </footer>
 
   <!-- CDN 依賴 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
