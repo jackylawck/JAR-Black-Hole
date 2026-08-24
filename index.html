@@ -8,8 +8,29 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#020617">
 
-  <title>🌌 J.A.R. (Joint Applied Research) 黑洞 3D | JAR Black Hole</title>
-  <meta name="description" content="J.A.R. 廣義相對論實時 3D 黑洞物理模擬器，具備 GPGPU 吸積盤、光子環與 3D HRTF 空間音效。">
+  <meta name="google-site-verification" content="JZ5UohX-CcP_fQV0_DI9VadkKY4ZoTTkUifL88-fIcY" />
+
+  <!-- 品牌標題：Joint Applied Research 聯合應用科學探索 -->
+  <title>🌌 J.A.R. (Joint Applied Research) 黑洞 3D | JAR Black Hole - General Relativity Simulator</title>
+  <meta name="description" content="J.A.R. (Joint Applied Research 聯合應用科學探索) Black Hole 3D is a research-grade WebGL General Relativity Simulator, featuring RK4 raymarching, GPGPU accretion disk, relativistic Doppler beaming, and 3D HRTF spatial audio.">
+  <meta name="keywords" content="JAR Black Hole, Joint Applied Research, 聯合應用科學探索, General Relativity, Black Hole Simulator, 3D Black Hole, Schwarzschild Metric, Three.js, WebGL, STEM Education, Jacky Law">
+  <meta name="author" content="羅子淇 Jacky Law">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://jackylawck.github.io/jar-black-hole/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://jackylawck.github.io/jar-black-hole/">
+  <meta property="og:title" content="🌌 J.A.R. (Joint Applied Research 聯合應用科學探索) 黑洞 3D | JAR Black Hole">
+  <meta property="og:description" content="High-fidelity 3D General Relativity Black Hole Simulator with real-time relativistic Doppler beaming and spatial audio, powered by Joint Applied Research (聯合應用科學探索).">
+  <meta property="og:image" content="https://jackylawck.github.io/jar-black-hole/jarBlackHole512icon.png">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://jackylawck.github.io/jar-black-hole/">
+  <meta name="twitter:title" content="🌌 JAR (Joint Applied Research 聯合應用科學探索) Black Hole 3D | General Relativity Simulator">
+  <meta name="twitter:description" content="Experience real-time spacetime curvature, photon sphere lensing, and tidal spaghettification telemetry, powered by Joint Applied Research (聯合應用科學探索).">
+  <meta name="twitter:image" content="https://jackylawck.github.io/jar-black-hole/jarBlackHole512icon.png">
 
   <!-- PWA & App Icons -->
   <link rel="manifest" href="manifest.json">
@@ -21,8 +42,25 @@
   <!-- CSP 安全防護政策 -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self';">
 
+  <!-- 核心資源預解析與樣式表 -->
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="stylesheet" href="style.css">
+
+  <!-- JSON-LD 結構化資料 (Schema.org) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "J.A.R. 黑洞 3D",
+    "description": "實時廣義相對論 3D 黑洞物理模擬與 STEM 科學教育體驗",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Web Browser",
+    "author": {
+      "@type": "Person",
+      "name": "Jacky Law"
+    }
+  }
+  </script>
 </head>
 <body>
   <!-- 深空星雲背景 -->
@@ -33,12 +71,19 @@
 
   <!-- 3A 旗艦駕駛艙 HUD 控制面板 (底部中央) -->
   <aside id="ui-panel" aria-label="黑洞全息駕駛艙終端">
-    <!-- 頂部狀態列與語言切換 -->
+    <!-- 頂部狀態列、模式切換與語言切換 -->
     <div class="hud-top-bar">
       <div class="sys-status">
         <span class="status-dot"></span>
         <span class="status-text">COCKPIT HUD // ONLINE</span>
       </div>
+
+      <!-- 模式切換器：探索者 vs 科研者 -->
+      <div class="mode-switcher" role="radiogroup" aria-label="系統運作模式">
+        <button id="mode-basic" class="mode-btn active" type="button">🚀 探索模式</button>
+        <button id="mode-pro" class="mode-btn" type="button">⚛️ 科研模式</button>
+      </div>
+
       <nav class="lang-switcher" aria-label="切換語言">
         <button id="btn-zh" class="lang-btn active" type="button">繁中</button>
         <button id="btn-en" class="lang-btn" type="button">EN</button>
@@ -50,6 +95,12 @@
       <h1 id="ui-title">J.A.R. 黑洞 3D</h1>
       <h2 id="ui-subtitle">廣義相對論實時遙測系統</h2>
     </header>
+
+    <!-- 探索者模式任務 HUD 條 -->
+    <div class="mission-hud" role="status" aria-live="polite">
+      <span class="mission-badge">MISSION</span>
+      <div id="missionText" class="mission-text">任務：發射小飛船收集 3 顆光譜能量石！</div>
+    </div>
 
     <!-- 3 大核心遙測數據看板 (3-Grid 大字置頂) -->
     <section class="telemetry-grid" aria-label="核心物理數據">
@@ -67,6 +118,45 @@
       </div>
     </section>
 
+    <!-- ⚛️ 科研模式專屬：相對論張量與實時測地線終端 -->
+    <div class="pro-terminal-stream" aria-label="相對論度規遙測終端">
+      <div class="terminal-line">
+        <span>METRIC: SCHWARZSCHILD (ds²)</span>
+        <span id="metricStatus">g_00 = -(1 - 2M/r)</span>
+      </div>
+      <div class="terminal-line">
+        <span>DOPPLER BEAMING (δ):</span>
+        <span id="telemetryDoppler">γ⁻¹(1 - β·cosθ)⁻¹ = 1.420</span>
+      </div>
+      <div class="terminal-line">
+        <span>REDSHIFT FACTOR (1+z):</span>
+        <span id="telemetryRedshift">(1 - 2M/r)⁻¹/² = 1.280</span>
+      </div>
+    </div>
+
+    <!-- 🌌 恆星演化史詩控制器 (隨時暫停 / 拖曳前後進度) -->
+    <section class="evolution-controller" aria-label="恆星演化時間軸">
+      <div class="evolution-header">
+        <span class="evolution-title">🌌 恆星演化歷程</span>
+        <span id="evolutionStageText" class="evolution-stage-badge">黑洞奇異點 (事件視界與吸積盤)</span>
+      </div>
+
+      <!-- 科學物理註解欄 -->
+      <div id="evolutionStageDesc" class="evolution-desc">
+        殘餘核心質量突破歐本海默極限，核心徹底塌縮形成事件視界。
+      </div>
+      
+      <div class="timeline-bar-wrapper">
+        <input type="range" id="evolutionSlider" min="0" max="1" step="0.002" value="1.0" aria-label="恆星演化時間軸進度">
+      </div>
+
+      <div class="timeline-actions">
+        <button type="button" id="prevStageBtn" class="timeline-btn">⏮ 上一階段</button>
+        <button type="button" id="playPauseBtn" class="timeline-btn play-btn">▶ 演化播放</button>
+        <button type="button" id="nextStageBtn" class="timeline-btn">⏭ 下一階段</button>
+      </div>
+    </section>
+
     <!-- 雙欄控制網格 (Controls Grid) -->
     <section class="controls-grid" aria-label="參數控制網格">
       <div class="control-group">
@@ -74,7 +164,7 @@
           <label for="massRange" id="label-mass">質量調節</label>
           <span id="massVal" class="val-badge purple-badge">2.5 M☉</span>
         </div>
-        <input type="range" id="massRange" min="1.0" max="5.0" step="0.1" value="2.5">
+        <input type="range" id="massRange" min="1.0" max="3.0" step="0.1" value="2.5">
       </div>
 
       <div class="control-group">
@@ -110,7 +200,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/shaders/LuminosityHighPassShader.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/postprocessing/UnrealBloomPass.js"></script>
 
-  <!-- J.A.R. 模組化業務引擎 -->
+  <!-- J.A.R. 模組化業務引擎 (按嚴格依賴鏈加載) -->
   <script src="js/i18n.js"></script>
   <script src="js/physics.js"></script>
   <script src="js/audio.js"></script>
@@ -118,6 +208,8 @@
   <script src="js/scene.js"></script>
   <script src="js/particles.js"></script>
   <script src="js/probe.js"></script>
+  <script src="js/evolution.js"></script>
+  <script src="js/narrative.js"></script>
   <script src="js/main.js"></script>
 
   <!-- PWA Service Worker 註冊 -->
