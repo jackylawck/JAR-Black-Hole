@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jar-black-hole-v11.0';
+const CACHE_NAME = 'jar-black-hole-v11.2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -16,7 +16,6 @@ const ASSETS_TO_CACHE = [
   './js/scene.js',
   './js/particles.js',
   './js/main.js',
-  // CDN 核心依賴
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/controls/OrbitControls.js',
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/postprocessing/EffectComposer.js',
@@ -27,7 +26,6 @@ const ASSETS_TO_CACHE = [
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/postprocessing/UnrealBloomPass.js'
 ];
 
-// 安裝階段：快取資源
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
@@ -43,7 +41,6 @@ self.addEventListener('install', (e) => {
   self.skipWaiting();
 });
 
-// 啟用階段：清除所有舊版本快取 (包括 v1 至 v10.0)
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -60,7 +57,6 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
-// 請求攔截：Network-First (網路優先)
 self.addEventListener('fetch', (e) => {
   e.respondWith(
     fetch(e.request)
@@ -75,9 +71,7 @@ self.addEventListener('fetch', (e) => {
       })
       .catch(() => {
         return caches.match(e.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
+          if (cachedResponse) return cachedResponse;
           return caches.match('./index.html');
         });
       })
