@@ -13,18 +13,30 @@ document.addEventListener('DOMContentLoaded', () => {
     uiPanel.style.transition = 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
   }
 
-  // 1. 初始化核心模組
+  // 1. 初始化核心模組 (音訊採使用者首次互動延遲初始化)
   try {
     if (typeof I18N !== 'undefined') I18N.init();
     if (typeof SceneManager !== 'undefined') SceneManager.init();
     if (typeof ParticleManager !== 'undefined') ParticleManager.init(SceneManager.scene, 2.5);
     if (typeof ProbeManager !== 'undefined') ProbeManager.init(SceneManager.scene);
-    if (typeof AudioManager !== 'undefined') AudioManager.init();
   } catch (err) {
     console.error('初始化流程發生異常:', err);
   }
 
-  // 🌟 優化 3: 載入完成優雅淡入
+  // 🌟 修復 3: 使用者首觸啟動音頻引擎 (符合 Autoplay Policy)
+  const unlockAndInitAudio = () => {
+    if (typeof AudioManager !== 'undefined') {
+      if (!AudioManager.isInitialized) {
+        AudioManager.init();
+      } else if (AudioManager.ctx && AudioManager.ctx.state === 'suspended') {
+        AudioManager.ctx.resume();
+      }
+    }
+  };
+  window.addEventListener('click', unlockAndInitAudio, { once: true });
+  window.addEventListener('touchstart', unlockAndInitAudio, { once: true });
+
+  // 載入完成優雅淡入
   requestAnimationFrame(() => {
     if (uiPanel) uiPanel.style.opacity = '1';
   });
@@ -38,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const physicsCard = document.querySelector('.physics-card');
 
-  // 🌟 優化 1: 數值閃爍 + 微音效觸發
+  // 數值閃爍 + 微音效觸發
   function triggerFlash(el) {
     if (!el) return;
     el.classList.remove('flash');
@@ -50,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 🌟 優化 2: 300ms 節流卡片能量脈衝
+  // 300ms 節流卡片能量脈衝
   function triggerCardPulse() {
     const now = performance.now();
     if (now - lastPulseTime < 300 || !physicsCard) return;
@@ -116,25 +128,36 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 🌟 優化 5: 100ms 節奏同步 Tick System
+  // 🌟 修復 1 & 2: 100ms 系統心跳引擎 (實裝背景微動與音訊狀態保活)
   function onSystemTick() {
-    // 保持系統在統一節奏下的細微共鳴（例如狀態校準或心跳）
+    // 1. 3D 背景星空微漂移 (Subtle Deep Space Rotation)
+    if (SceneManager && SceneManager.backgroundStars) {
+      SceneManager.backgroundStars.rotation.y += 0.0003;
+      SceneManager.backgroundStars.rotation.x += 0.0001;
+    }
+
+    // 2. 音訊上下文健康校驗
+    if (typeof AudioManager !== 'undefined' && AudioManager.isInitialized && AudioManager.ctx) {
+      if (AudioManager.ctx.state === 'interrupted') {
+        AudioManager.ctx.resume();
+      }
+    }
   }
 
-  // 🌟 優化 4: 具備錯誤隔離的動畫主迴圈
+  // 4. 具備錯誤隔離的動畫主迴圈
   function animate() {
     requestAnimationFrame(animate);
 
     const delta = clock.getDelta();
     const now = performance.now();
 
-    // 系統週期 Tick
+    // 系統週期 Tick (每 100ms 觸發一次)
     if (now - lastTickTime > 100) {
       lastTickTime = now;
       onSystemTick();
     }
 
-    // 控制器更新
+    // 控制器平滑更新
     if (SceneManager && SceneManager.controls) {
       SceneManager.controls.update();
     }
