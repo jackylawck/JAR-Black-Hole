@@ -7,48 +7,30 @@
 body {
   margin: 0;
   overflow: hidden;
-  background: radial-gradient(ellipse at 30% 40%, #0a1628, #020617 75%);
-  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  background-color: #020617;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "SF Pro Display", sans-serif;
   user-select: none;
   -webkit-user-select: none;
-  color: #fff;
+  color: #f8fafc;
   touch-action: none;
   overscroll-behavior: none;
 }
 
 /* ============================================================
-   1. 三層 Parallax 視差深度星空背景
+   1. 深空動態星雲與視差空間背景
    ============================================================ */
 #starfield-bg {
   position: fixed;
-  top: 0; 
+  top: 0;
   left: 0;
-  width: 100%; 
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   z-index: 0;
   pointer-events: none;
-  background-image: 
-    /* 遠層 (微粒慢速) */
-    radial-gradient(0.6px 0.6px at 15% 20%, rgba(255, 255, 255, 0.4), transparent),
-    radial-gradient(0.6px 0.6px at 65% 40%, rgba(255, 255, 255, 0.3), transparent),
-    /* 中層 (中粒中速) */
-    radial-gradient(1.2px 1.2px at 40% 60%, rgba(255, 255, 255, 0.5), transparent),
-    radial-gradient(1.2px 1.2px at 80% 15%, rgba(255, 255, 255, 0.4), transparent),
-    /* 近層 (亮粒快速) */
-    radial-gradient(1.8px 1.8px at 25% 75%, rgba(255, 255, 255, 0.6), transparent),
-    radial-gradient(2.2px 2.2px at 55% 85%, rgba(125, 211, 252, 0.7), transparent);
-  background-size: 200% 200%, 180% 180%, 220% 220%, 150% 150%, 200% 200%, 160% 160%;
-  animation: starDriftFar 90s linear infinite, starDriftNear 45s linear infinite;
-}
-
-@keyframes starDriftFar {
-  0% { background-position: 0% 0%, 0% 0%; }
-  100% { background-position: 100% 100%, -100% 100%; }
-}
-
-@keyframes starDriftNear {
-  0% { background-position: 0% 0%, 0% 0%, 0% 0%, 0% 0%; }
-  100% { background-position: 100% -100%, -100% -100%, 100% 100%, -100% 100%; }
+  background: 
+    radial-gradient(circle at 15% 25%, rgba(56, 189, 248, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 85% 75%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(2, 6, 23, 0.95) 0%, #01040d 100%);
 }
 
 #canvas-container {
@@ -59,204 +41,265 @@ body {
 }
 
 /* ============================================================
-   2. 3A 旗艦級 HUD 面板 (雙層邊框 + 玻璃反射 + 掃描線)
+   2. 3A 旗艦駕駛艙 HUD 控制面板
    ============================================================ */
 #ui-panel {
   position: absolute;
-  top: 20px;
-  left: 20px;
+  top: 24px;
+  left: 24px;
   z-index: 10;
-  max-width: 360px;
-  width: calc(100% - 40px);
-  padding: 20px 22px;
-  background: rgba(6, 12, 30, 0.84);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(56, 189, 248, 0.22);
-  border-radius: 16px;
+  max-width: 380px;
+  width: calc(100% - 48px);
+  padding: 24px 22px;
+  background: rgba(8, 15, 36, 0.72);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  border-radius: 20px;
   box-shadow: 
-    inset 0 0 30px rgba(56, 189, 248, 0.05),
-    0 8px 32px rgba(0, 0, 0, 0.85),
-    0 0 60px rgba(56, 189, 248, 0.08);
+    0 20px 50px rgba(0, 0, 0, 0.9),
+    0 0 40px rgba(56, 189, 248, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 0 20px rgba(56, 189, 248, 0.05);
   background-image: repeating-linear-gradient(
     0deg,
     transparent,
-    transparent 2px,
-    rgba(56, 189, 248, 0.02) 2px,
-    rgba(56, 189, 248, 0.02) 4px
+    transparent 3px,
+    rgba(56, 189, 248, 0.02) 3px,
+    rgba(56, 189, 248, 0.02) 6px
   );
-  background-blend-mode: overlay;
   overflow: hidden;
 }
 
-#ui-panel::before {
-  content: '';
-  position: absolute;
-  top: -40%;
-  left: -20%;
-  width: 60%;
-  height: 60%;
-  background: radial-gradient(ellipse, rgba(56, 189, 248, 0.1) 0%, transparent 70%);
-  pointer-events: none;
-  border-radius: 50%;
-}
-
 /* ============================================================
-   3. 語言切換選單 (發光放大 Active)
+   3. 頂部狀態列與語言切換
    ============================================================ */
-.lang-switcher {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-bottom: 12px;
-  position: relative;
-  z-index: 2;
-}
-
-.lang-btn {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #64748b;
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  letter-spacing: 0.5px;
-}
-
-.lang-btn:hover {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: rgba(56, 189, 248, 0.4);
-  color: #cbd5e1;
-}
-
-.lang-btn.active {
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.3), rgba(124, 58, 237, 0.25));
-  color: #f0f9ff;
-  border-color: #7dd3fc;
-  box-shadow: 0 0 20px rgba(56, 189, 248, 0.35);
-  transform: scale(1.05);
-}
-
-/* ============================================================
-   4. 三層全息光暈標題
-   ============================================================ */
-h1 {
-  margin: 0 0 4px 0;
-  font-size: 1.35rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #7dd3fc, #a78bfa);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 
-    0 0 20px rgba(125, 211, 252, 0.45),
-    0 0 60px rgba(125, 211, 252, 0.2),
-    0 0 120px rgba(125, 211, 252, 0.08);
-  letter-spacing: 0.8px;
-  position: relative;
-  z-index: 2;
-}
-
-h2 {
-  margin: 0 0 12px 0;
-  font-size: 0.65rem;
-  font-weight: 500;
-  color: #64748b;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  border-bottom: 1px solid rgba(56, 189, 248, 0.15);
-  padding-bottom: 8px;
-  position: relative;
-  z-index: 2;
-}
-
-p {
-  margin: 0 0 14px 0;
-  font-size: 0.78rem;
-  color: #94a3b8;
-  line-height: 1.5;
-  position: relative;
-  z-index: 2;
-}
-
-/* ============================================================
-   5. 任務 HUD (Objective Card)
-   ============================================================ */
-.mission-hud {
-  margin-bottom: 12px;
-  padding: 8px 10px;
-  background: rgba(124, 58, 237, 0.15);
-  border: 1px solid rgba(167, 139, 250, 0.4);
-  border-radius: 8px;
-  font-size: 0.72rem;
-  position: relative;
-  z-index: 2;
-  backdrop-filter: blur(8px);
-}
-
-.mission-badge {
-  background: #7c3aed;
-  color: #fff;
-  font-size: 0.58rem;
-  font-weight: 800;
-  padding: 2px 6px;
-  border-radius: 4px;
-  margin-right: 6px;
-  letter-spacing: 0.8px;
-  display: inline-block;
-}
-
-.mission-text {
-  color: #e2e8f0;
-  display: inline;
-}
-
-/* ============================================================
-   6. 控制項與數值跳動 (Flash 動畫)
-   ============================================================ */
-.control-group {
-  margin-bottom: 12px;
-  position: relative;
-  z-index: 2;
-}
-
-label {
+.hud-top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.72rem;
-  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.sys-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  background-color: #38bdf8;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #38bdf8;
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+.status-text {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #64748b;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.lang-switcher {
+  display: flex;
+  gap: 6px;
+}
+
+.lang-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: #94a3b8;
-  margin-bottom: 4px;
-  letter-spacing: 0.3px;
-}
-
-label .val-label {
-  color: #7dd3fc;
-  font-family: 'Courier New', monospace;
-  font-size: 0.82rem;
+  font-size: 0.68rem;
   font-weight: 600;
-  transition: color 0.15s ease, transform 0.15s ease;
-  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.val-label.flash {
-  animation: valueFlash 0.15s ease;
+.lang-btn.active {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: #38bdf8;
+  color: #f8fafc;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
 }
 
-@keyframes valueFlash {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.18); color: #ffffff; text-shadow: 0 0 10px #7dd3fc; }
+/* ============================================================
+   4. 品牌全息文字與副標
+   ============================================================ */
+.hud-header h1 {
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  background: linear-gradient(135deg, #ffffff 20%, #7dd3fc 60%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 16px rgba(125, 211, 252, 0.35));
+  margin-bottom: 2px;
 }
+
+.hud-header h2 {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+.hud-header p {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  line-height: 1.4;
+  margin-bottom: 14px;
+}
+
+/* ============================================================
+   5. 任務指示 HUD
+   ============================================================ */
+.mission-hud {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+
+.mission-badge {
+  background: #9333ea;
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(147, 51, 234, 0.5);
+}
+
+.mission-text {
+  font-size: 0.72rem;
+  color: #e2e8f0;
+  font-weight: 500;
+}
+
+/* ============================================================
+   6. 大字階層：核心遙測網格 (Telemetry Grid)
+   ============================================================ */
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.telemetry-box {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.telemetry-box:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.15);
+}
+
+.telemetry-label {
+  font-size: 0.62rem;
+  color: #64748b;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.telemetry-val {
+  font-family: 'SF Mono', 'Courier New', monospace;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.telemetry-val small {
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.cyan-val {
+  color: #38bdf8;
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+}
+
+.purple-val {
+  color: #c084fc;
+  text-shadow: 0 0 12px rgba(192, 132, 252, 0.5);
+}
+
+/* ============================================================
+   7. 自定義發光滑塊與操作手感
+   ============================================================ */
+.control-group {
+  margin-bottom: 14px;
+}
+
+.control-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.control-header label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.val-badge {
+  font-family: 'SF Mono', 'Courier New', monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.val-badge.flash {
+  animation: badgeFlash 0.2s ease-out;
+}
+
+@keyframes badgeFlash {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); filter: brightness(1.6); }
+  100% { transform: scale(1); }
+}
+
+.cyan-badge { color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+.purple-badge { color: #c084fc; border: 1px solid rgba(192, 132, 252, 0.3); }
+.orange-badge { color: #fb923c; border: 1px solid rgba(251, 146, 60, 0.3); }
 
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, rgba(56, 189, 248, 0.2), rgba(56, 189, 248, 0.5));
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 2px;
   outline: none;
 }
@@ -264,151 +307,87 @@ input[type="range"] {
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #7dd3fc, #0284c7);
+  background: radial-gradient(circle at 35% 35%, #ffffff, #38bdf8);
+  border: 2px solid rgba(2, 6, 23, 0.8);
+  box-shadow: 0 0 14px #38bdf8;
   cursor: pointer;
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 0 18px rgba(56, 189, 248, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.5);
-  transition: all 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
   margin-top: -6px;
 }
 
 input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-  box-shadow: 0 0 30px rgba(56, 189, 248, 0.75);
+  transform: scale(1.25);
+  box-shadow: 0 0 22px #38bdf8, 0 0 35px rgba(56, 189, 248, 0.6);
 }
 
 /* ============================================================
-   7. 物理卡片與瞬態能量脈衝 (Data Pulse Burst)
-   ============================================================ */
-.physics-card {
-  margin-top: 14px;
-  padding: 12px 14px;
-  background: rgba(0, 0, 0, 0.52);
-  border-radius: 10px;
-  border: 1px solid rgba(56, 189, 248, 0.14);
-  position: relative;
-  z-index: 2;
-  backdrop-filter: blur(8px);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.physics-card.data-pulse {
-  animation: dataPulseBurst 0.4s cubic-bezier(0.1, 0.9, 0.2, 1);
-}
-
-@keyframes dataPulseBurst {
-  0% { 
-    border-color: rgba(56, 189, 248, 0.7); 
-    box-shadow: 0 0 35px rgba(56, 189, 248, 0.4), inset 0 0 15px rgba(56, 189, 248, 0.15); 
-  }
-  100% { 
-    border-color: rgba(56, 189, 248, 0.14); 
-    box-shadow: 0 0 10px rgba(56, 189, 248, 0.02), inset 0 0 0 transparent; 
-  }
-}
-
-.physics-card-title {
-  font-size: 0.65rem;
-  color: #38bdf8;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-  opacity: 0.85;
-  font-weight: 700;
-}
-
-.stat-row {
-  font-size: 0.72rem;
-  color: #94a3b8;
-  display: flex;
-  justify-content: space-between;
-  padding: 3px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.stat-row:last-of-type {
-  border-bottom: none;
-}
-
-.stat-row .val {
-  font-family: 'Courier New', monospace;
-  font-weight: 600;
-}
-
-.stat-row .val.purple-glow {
-  color: #a78bfa;
-  text-shadow: 0 0 12px rgba(167, 139, 250, 0.45);
-}
-
-.stat-row .val.blue-glow {
-  color: #7dd3fc;
-  text-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
-}
-
-.stat-row.note {
-  font-size: 0.65rem;
-  color: #fbbf24;
-  margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid rgba(251, 191, 36, 0.15);
-  letter-spacing: 0.3px;
-  line-height: 1.3;
-}
-
-/* ============================================================
-   8. 0.05s 機械清脆感脈衝發射按鈕
+   8. 脈衝發射按鈕 (太空引擎點火質感)
    ============================================================ */
 #launchBtn {
-  margin-top: 14px;
-  width: 100%;
-  padding: 12px 18px;
-  background: linear-gradient(135deg, #0284c7, #7c3aed);
-  border: 1px solid rgba(125, 211, 252, 0.45);
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 0.82rem;
-  color: #fff;
-  cursor: pointer;
-  box-shadow: 0 0 30px rgba(56, 189, 248, 0.3);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  width: 100%;
+  padding: 13px 18px;
+  margin-top: 6px;
+  background: linear-gradient(135deg, #0284c7 0%, #7c3aed 100%);
+  border: 1px solid rgba(125, 211, 252, 0.5);
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
   overflow: hidden;
-  z-index: 2;
+  box-shadow: 0 8px 24px rgba(2, 132, 199, 0.35);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-#launchBtn::before {
-  content: '';
+#launchBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(124, 58, 237, 0.55), 0 0 20px rgba(56, 189, 248, 0.4);
+}
+
+#launchBtn:active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  transition: all 0.05s ease;
+}
+
+.btn-glow {
   position: absolute;
   top: -50%;
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, transparent 60%);
-  animation: btnPulse 3s ease-in-out infinite;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, transparent 60%);
+  animation: pulseGlow 3s infinite ease-in-out;
   pointer-events: none;
 }
 
-@keyframes btnPulse {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.15); opacity: 0.95; }
-}
-
-#launchBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 45px rgba(124, 58, 237, 0.6);
-}
-
-#launchBtn:active {
-  transform: translateY(2px) scale(0.98);
-  box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
-  transition: all 0.05s ease;
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.3; transform: scale(0.95); }
+  50% { opacity: 0.8; transform: scale(1.1); }
 }
 
 /* ============================================================
-   9. 行動端拇指友好優化
+   9. 註腳與物理備註
+   ============================================================ */
+.hud-footer {
+  margin-top: 14px;
+}
+
+.stat-row.note {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  line-height: 1.4;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 10px;
+}
+
+/* ============================================================
+   10. 行動端適配 (Mobile Responsive)
    ============================================================ */
 @media (max-width: 480px) {
   #ui-panel {
@@ -416,21 +395,18 @@ input[type="range"]::-webkit-slider-thumb:hover {
     bottom: 16px;
     left: 12px;
     width: calc(100% - 24px);
-    max-height: 55vh;
-    border-radius: 20px;
-    padding: 16px 18px 20px;
-    backdrop-filter: blur(28px);
-    -webkit-backdrop-filter: blur(28px);
+    max-height: 60vh;
+    padding: 18px 16px;
+    border-radius: 18px;
+  }
+
+  .telemetry-val {
+    font-size: 1.15rem;
   }
 
   input[type="range"]::-webkit-slider-thumb {
-    width: 22px;
-    height: 22px;
-    margin-top: -9.5px;
-  }
-
-  #launchBtn {
-    padding: 14px 18px;
-    font-size: 0.88rem;
+    width: 20px;
+    height: 20px;
+    margin-top: -8px;
   }
 }
