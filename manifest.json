@@ -1,22 +1,25 @@
 {
-  "name": "J.A.R. 黑洞 3D",
-  "short_name": "黑洞 3D",
-  "description": "3A 級相對論黑洞與吸積盤 3D 模擬器",
+  "name": "J.A.R. (Joint Applied Research) 黑洞 3D | JAR Black Hole",
+  "short_name": "JAR 黑洞 3D",
+  "description": "J.A.R. 廣義相對論實時 3D 黑洞物理模擬器，具備 GPGPU 吸積盤、光子環與 3D HRTF 空間音效。",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#000000",
-  "theme_color": "#060c1e",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "categories": ["education", "science", "utilities"],
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "./jarBlackHole192icon.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "./jarBlackHole512icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
