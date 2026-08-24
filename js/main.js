@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     uiPanel.style.transition = 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
   }
 
-  // 1. 初始化核心模組 (音訊採使用者首次互動延遲初始化)
+  // 1. 初始化核心模組 (音訊採使用者首觸延遲初始化)
   try {
     if (typeof I18N !== 'undefined') I18N.init();
     if (typeof SceneManager !== 'undefined') SceneManager.init();
@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.error('初始化流程發生異常:', err);
   }
 
-  // 🌟 修復 3: 使用者首觸啟動音頻引擎 (符合 Autoplay Policy)
+  // 使用者首觸啟動音頻引擎 (符合 Autoplay Policy)
   const unlockAndInitAudio = () => {
     if (typeof AudioManager !== 'undefined') {
       if (!AudioManager.isInitialized) {
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('click', unlockAndInitAudio, { once: true });
   window.addEventListener('touchstart', unlockAndInitAudio, { once: true });
 
-  // 載入完成優雅淡入
+  // 載入完成淡入
   requestAnimationFrame(() => {
     if (uiPanel) uiPanel.style.opacity = '1';
   });
@@ -45,10 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let speedFactor = 1.0;
   let massScale = 1.0;
   let clock = new THREE.Clock();
-  let lastPulseTime = 0;
   let lastTickTime = 0;
-
-  const physicsCard = document.querySelector('.physics-card');
 
   // 數值閃爍 + 微音效觸發
   function triggerFlash(el) {
@@ -58,19 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
     el.classList.add('flash');
 
     if (typeof AudioManager !== 'undefined') {
-      AudioManager.playUITick();
+      AudioManager.playUITick?.();
     }
-  }
-
-  // 300ms 節流卡片能量脈衝
-  function triggerCardPulse() {
-    const now = performance.now();
-    if (now - lastPulseTime < 300 || !physicsCard) return;
-    lastPulseTime = now;
-
-    physicsCard.classList.remove('data-pulse');
-    void physicsCard.offsetWidth;
-    physicsCard.classList.add('data-pulse');
   }
 
   // 3. UI 互動事件監聽
@@ -81,12 +67,12 @@ document.addEventListener('DOMContentLoaded', () => {
       speedFactor = parseFloat(e.target.value);
       speedVal.textContent = speedFactor.toFixed(1) + ' c';
       triggerFlash(speedVal);
-      triggerCardPulse();
     });
   }
 
   const massRange = document.getElementById('massRange');
   const massVal = document.getElementById('massVal');
+  const massValDisplay = document.getElementById('massValDisplay');
   const iscoVal = document.getElementById('iscoVal');
   const photonVal = document.getElementById('photonVal');
 
@@ -96,17 +82,17 @@ document.addEventListener('DOMContentLoaded', () => {
       massScale = rawMass / 2.5;
 
       if (massVal) massVal.textContent = rawMass.toFixed(1) + ' M☉';
-      if (iscoVal) iscoVal.textContent = (rawMass * 6.0).toFixed(1) + ' Rs';
-      if (photonVal) photonVal.textContent = (rawMass * 3.0).toFixed(1) + ' Rs';
+      if (massValDisplay) massValDisplay.innerHTML = `${rawMass.toFixed(1)} <small>M☉</small>`;
+      if (iscoVal) iscoVal.innerHTML = `${(rawMass * 6.0).toFixed(1)} <small>Rs</small>`;
+      if (photonVal) photonVal.innerHTML = `${(rawMass * 3.0).toFixed(1)} <small>Rs</small>`;
 
       triggerFlash(massVal);
+      if (massValDisplay) triggerFlash(massValDisplay);
       if (iscoVal) triggerFlash(iscoVal);
       if (photonVal) triggerFlash(photonVal);
 
-      triggerCardPulse();
-
       if (typeof AudioManager !== 'undefined') {
-        AudioManager.triggerGravityPulse();
+        AudioManager.triggerGravityPulse?.();
       }
 
       if (typeof SceneManager !== 'undefined') {
@@ -128,15 +114,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 🌟 修復 1 & 2: 100ms 系統心跳引擎 (實裝背景微動與音訊狀態保活)
+  // 4. 100ms 系統心跳引擎 (星空微漂移與音訊健康度檢查)
   function onSystemTick() {
-    // 1. 3D 背景星空微漂移 (Subtle Deep Space Rotation)
     if (SceneManager && SceneManager.backgroundStars) {
       SceneManager.backgroundStars.rotation.y += 0.0003;
       SceneManager.backgroundStars.rotation.x += 0.0001;
     }
 
-    // 2. 音訊上下文健康校驗
     if (typeof AudioManager !== 'undefined' && AudioManager.isInitialized && AudioManager.ctx) {
       if (AudioManager.ctx.state === 'interrupted') {
         AudioManager.ctx.resume();
@@ -144,25 +128,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 4. 具備錯誤隔離的動畫主迴圈
+  // 5. 具備錯誤隔離的動畫主迴圈
   function animate() {
     requestAnimationFrame(animate);
 
     const delta = clock.getDelta();
     const now = performance.now();
 
-    // 系統週期 Tick (每 100ms 觸發一次)
+    // 系統週期 Tick
     if (now - lastTickTime > 100) {
       lastTickTime = now;
       onSystemTick();
     }
 
-    // 控制器平滑更新
+    // 控制器更新
     if (SceneManager && SceneManager.controls) {
       SceneManager.controls.update();
     }
 
-    // 光子環全向 Billboard 對齊
+    // 光子環 Billboard 對齊
     if (SceneManager && SceneManager.photonRing && SceneManager.camera) {
       SceneManager.photonRing.quaternion.copy(SceneManager.camera.quaternion);
     }
