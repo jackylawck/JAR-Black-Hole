@@ -141,7 +141,7 @@ body {
 .pip-metric-item .val-hot { color: #f43f5e; text-shadow: 0 0 6px rgba(244, 63, 94, 0.6); }
 
 /* ============================================================
-   2. 3A 緊湊型座艙 HUD (置底避開中央黑洞)
+   2. 3A 緊湊型座艙 HUD
    ============================================================ */
 .hud-cockpit {
   position: fixed;
@@ -173,7 +173,7 @@ body {
   border-radius: inherit;
 }
 
-/* 🌟 智能捲起：只留數據 */
+/* 智能捲起：只留數據 */
 .hud-cockpit.hud-collapsed {
   background: rgba(4, 8, 20, 0.85);
   gap: 3px;
@@ -291,10 +291,47 @@ body {
 .telemetry-card.sub-tier .deck-val { font-size: 0.8rem; }
 
 /* ============================================================
-   6. 演化控制器
+   6. ⚛️ 科研模式專屬：動態滾動測地線串流日誌
+   ============================================================ */
+.pro-terminal-stream-box {
+  display: none;
+  background: #020806;
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-family: 'SF Mono', 'Courier New', monospace;
+  font-size: 0.5rem;
+  color: #10b981;
+  max-height: 40px;
+  overflow: hidden;
+  margin-top: 2px;
+}
+
+body.mode-pro .pro-terminal-stream-box {
+  display: block;
+}
+
+.pro-stream-line {
+  white-space: nowrap;
+  line-height: 1.35;
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+}
+
+.pro-stream-line:first-child {
+  opacity: 1;
+  color: #34d399;
+  font-weight: 700;
+}
+
+/* ============================================================
+   7. 恆星演化史詩控制器
    ============================================================ */
 .evolution-deck {
-  padding: 4px 8px; background: rgba(15, 23, 42, 0.45); border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 5px;
+  padding: 4px 8px;
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  border-radius: 5px;
 }
 .evo-hud-bar { display: flex; justify-content: space-between; margin-bottom: 1px; }
 .evo-hud-title { font-size: 0.5rem; font-weight: 800; color: #c084fc; }
@@ -307,7 +344,7 @@ body {
 }
 
 /* ============================================================
-   7. 底部控制組
+   8. 底部指令區與狀態機
    ============================================================ */
 .command-deck {
   display: grid; grid-template-columns: 1fr 1fr 0.8fr 1.2fr; gap: 6px; align-items: end;
@@ -316,6 +353,7 @@ body {
 .slider-meta label { font-size: 0.48rem; color: #94a3b8; font-weight: 700; }
 .slider-meta .val-chip {
   font-family: 'SF Mono', monospace; font-size: 0.48rem; font-weight: 800; padding: 0 4px; border-radius: 3px;
+  border: 1px solid transparent;
 }
 .val-chip.status-stable { color: #38bdf8; background: rgba(56, 189, 248, 0.1); }
 .val-chip.status-warning { color: #fbbf24; background: rgba(251, 191, 36, 0.12); }
@@ -339,10 +377,8 @@ input[type="range"]::-webkit-slider-thumb {
 }
 @keyframes pulseGlow { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.8; } }
 
-.hud-cockpit.hud-collapsed .collapsible-section { display: none !important; }
-
 /* ============================================================
-   📱 8. 響應式優化
+   📱 9. 響應式優化
    ============================================================ */
 @media (orientation: landscape) and (max-height: 520px) {
   .hud-cockpit {
