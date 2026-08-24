@@ -1,57 +1,114 @@
-const I18N = {
-  currentLang: 'zh-HK',
+window.I18N = {
+  currentLang: 'zh',
+  currentMode: 'basic',
+
   dict: {
-    'zh-HK': {
-      title: '🌌 J.A.R. 黑洞 3D',
-      subtitle: '聯合應用科學探索 • 天體物理分部',
-      desc: '實時計算愛因斯坦廣義相對論「重力透鏡」、RK4 測地線光線彎曲與相對論性都卜勒聚束效應。',
-      speedLabel: '自轉速度 (Rotation Speed)',
-      massLabel: '引力質量 (Gravitational Mass)',
-      bloomLabel: '輝光強度 (Bloom Intensity)',
-      statsTitle: '🔬 即時相對論數據 (Live Metrics)',
-      iscoLabel: 'ISCO 內邊界 (3 Rs):',
-      photonRadiusLabel: '光子球半徑 (1.5 Rs):',
-      dopplerStatus: '都卜勒效應狀態: 左側藍移 (增亮) / 右側紅移 (衰減)',
-      spaghettiBtn: '🚀 發射探測器 (意粉化測試)'
+    zh: {
+      basic: {
+        title: "J.A.R. 黑洞大冒險 🚀",
+        subtitle: "宇宙神秘黑洞探索系統",
+        massLabel: "黑洞重量 (太陽倍數)",
+        speedLabel: "旋轉速度",
+        iscoText: "安全觀測邊界",
+        photonText: "光線轉彎圓環",
+        massTitle: "黑洞重量",
+        launchBtn: "🚀 發射探測小飛船",
+        noteText: "* 太靠近黑洞會被強大引力扯成拉麵（意粉化）！",
+        voiceWelcome: "J.A.R. 艦載助理已啟動！今天我們一起探索宇宙中最神奇的黑洞！"
+      },
+      pro: {
+        title: "J.A.R. 數值相對論黑洞終端 ⚛️",
+        subtitle: "GR Tensor Metric Solver // Real-Time Geodesic Engine",
+        massLabel: "引力質量 M (M☉)",
+        speedLabel: "吸積盤角動量 (c)",
+        iscoText: "ISCO 軌道 (r_isco)",
+        photonText: "光子球半徑 (r_ph)",
+        massTitle: "幾何質量 M",
+        launchBtn: "📡 注入測地線遙測探針 (RK4 Geodesic)",
+        noteText: "* 測地線於 r < r_isco 區域失去約束，四維動量切向量直墜事件視界 r_+。",
+        voiceWelcome: "J.A.R. 相對論科研終端已鎖定。克爾度規張量初始化完畢。"
+      }
     },
-    'en': {
-      title: '🌌 J.A.R. Black Hole 3D',
-      subtitle: 'JOINT APPLIED RESEARCH • ASTROPHYSICS DIVISION',
-      desc: 'Real-time simulation of Einstein\'s General Relativity, RK4 raymarching, gravitational lensing, and Doppler beaming.',
-      speedLabel: 'Rotation Speed',
-      massLabel: 'Gravitational Mass',
-      bloomLabel: 'Bloom Intensity',
-      statsTitle: '🔬 Live Relativistic Metrics',
-      iscoLabel: 'ISCO Inner Edge (3 Rs):',
-      photonRadiusLabel: 'Photon Sphere (1.5 Rs):',
-      dopplerStatus: 'Doppler State: Left Blueshift (Brighter) / Right Redshift (Dimmer)',
-      spaghettiBtn: '🚀 Launch Probe (Spaghettification)'
+    en: {
+      basic: {
+        title: "J.A.R. Black Hole Adventure 🚀",
+        subtitle: "Space Explorer Simulator",
+        massLabel: "Black Hole Mass",
+        speedLabel: "Spin Speed",
+        iscoText: "Safe Orbit Zone",
+        photonText: "Light Bending Ring",
+        massTitle: "Core Mass",
+        launchBtn: "🚀 Launch Little Probe",
+        noteText: "* Getting too close will stretch the probe like spaghetti!",
+        voiceWelcome: "J.A.R. Space Assistant active! Let's explore the cosmic black hole!"
+      },
+      pro: {
+        title: "J.A.R. General Relativity Terminal ⚛️",
+        subtitle: "Tensor Metric Solver // RK4 Geodesic Stream",
+        massLabel: "Gravitational Mass M (M☉)",
+        speedLabel: "Disk Angular Velocity (c)",
+        iscoText: "ISCO Radius (r_isco)",
+        photonText: "Photon Sphere (r_ph)",
+        massTitle: "Metric Mass M",
+        launchBtn: "📡 Inject Telemetry Probe (RK4 Geodesic)",
+        noteText: "* Geodesics become unconstrained inside r < r_isco, plunging past r_+.",
+        voiceWelcome: "Relativistic core online. Metric tensor initialized."
+      }
     }
   },
 
-  init() {
-    document.querySelectorAll('.lang-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        this.setLanguage(e.target.dataset.lang);
-      });
-    });
-    this.applyLanguage();
+  setMode(mode) {
+    this.currentMode = mode;
+    this.applyModeRules();
+    this.updateUI();
   },
 
-  setLanguage(lang) {
-    if (this.dict[lang]) {
-      this.currentLang = lang;
-      this.applyLanguage();
+  setLang(lang) {
+    this.currentLang = lang;
+    this.updateUI();
+  },
+
+  // 🌟 玩法與規則差異化控制
+  applyModeRules() {
+    const massRange = document.getElementById('massRange');
+    if (!massRange) return;
+
+    if (this.currentMode === 'basic') {
+      // 探索者模式：限制安全範圍 1.0 - 3.0 M☉
+      massRange.min = "1.0";
+      massRange.max = "3.0";
+      if (parseFloat(massRange.value) > 3.0) {
+        massRange.value = "2.5";
+        massRange.dispatchEvent(new Event('input'));
+      }
+    } else {
+      // 科研者模式：解鎖極限引力 1.0 - 10.0 M☉
+      massRange.min = "1.0";
+      massRange.max = "10.0";
     }
   },
 
-  applyLanguage() {
-    const data = this.dict[this.currentLang];
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-      const key = el.getAttribute('data-i18n');
-      if (data[key]) el.textContent = data[key];
-    });
+  updateUI() {
+    const data = this.dict[this.currentLang][this.currentMode];
+    
+    const titleEl = document.getElementById('ui-title');
+    const subEl = document.getElementById('ui-subtitle');
+    const massLbl = document.getElementById('label-mass');
+    const speedLbl = document.getElementById('label-speed');
+    const iscoLbl = document.getElementById('label-isco');
+    const photonLbl = document.getElementById('label-photon');
+    const massTitle = document.getElementById('label-mass-title');
+    const launchTxt = document.getElementById('btn-launch-text');
+    const noteEl = document.getElementById('ui-note');
+
+    if (titleEl) titleEl.textContent = data.title;
+    if (subEl) subEl.textContent = data.subtitle;
+    if (massLbl) massLbl.textContent = data.massLabel;
+    if (speedLbl) speedLbl.textContent = data.speedLabel;
+    if (iscoLbl) iscoLbl.textContent = data.iscoText;
+    if (photonLbl) photonLbl.textContent = data.photonText;
+    if (massTitle) massTitle.textContent = data.massTitle;
+    if (launchTxt) launchTxt.textContent = data.launchBtn;
+    if (noteEl) noteEl.textContent = data.noteText;
   }
 };
