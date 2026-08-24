@@ -8,9 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#020617">
 
-  <meta name="google-site-verification" content="JZ5UohX-CcP_fQV0_DI9VadkKY4ZoTTkUifL88-fIcY" />
-
-  <title>🌌 J.A.R. (Joint Applied Research) 黑洞 3D | JAR Black Hole - General Relativity Simulator</title>
+  <title>🌌 J.A.R. 黑洞 3D | JAR Black Hole 3D Simulator</title>
   <meta name="description" content="J.A.R. 廣義相對論實時 3D 黑洞物理模擬器，具備 GPGPU 吸積盤、光子環與 3D HRTF 空間音效。">
 
   <link rel="manifest" href="manifest.json">
@@ -22,24 +20,15 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self';">
 
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <link rel="stylesheet" href="style.css?v=11.0">
+  <link rel="stylesheet" href="style.css?v=11.2">
 </head>
 <body>
-  <!-- 深空星雲背景 -->
   <div id="starfield-bg" aria-hidden="true"></div>
-
-  <!-- 3D 渲染畫布容器 (佔滿 100% 畫面) -->
   <main id="canvas-container" role="main"></main>
 
-  <!-- 🛰️ 探測器第一人稱視角畫中畫 HUD (右上角) -->
+  <!-- 🛰️ 探測器第一人稱畫中畫 -->
   <aside id="probePipContainer" class="probe-pip-deck" aria-label="探測器實時遙測視角">
     <div class="pip-crosshair"></div>
-    <div class="pip-chassis-overlay" aria-hidden="true">
-      <div class="pip-antenna-left"></div>
-      <div class="pip-antenna-right"></div>
-      <div class="pip-wing-left"></div>
-      <div class="pip-wing-right"></div>
-    </div>
     <div class="pip-header">
       <div class="pip-title-wrap">
         <span class="pip-live-dot"></span>
@@ -48,76 +37,62 @@
       <span id="pipHorizonAlert" class="pip-status-tag">APPROACHING</span>
     </div>
     <div class="pip-dashboard-grid">
-      <div class="pip-metric-item">
-        <span>DIST:</span>
-        <span id="pipDistance" class="val">18.00 Rs</span>
-      </div>
-      <div class="pip-metric-item">
-        <span>VEL:</span>
-        <span id="pipVelocity" class="val">0.12 c</span>
-      </div>
-      <div class="pip-metric-item">
-        <span>TIDAL:</span>
-        <span id="pipTidal" class="val">0.2 g</span>
-      </div>
-      <div class="pip-metric-item">
-        <span>TEMP:</span>
-        <span id="pipTemp" class="val val-hot">3,200 K</span>
-      </div>
+      <div class="pip-metric-item"><span>DIST:</span><span id="pipDistance" class="val">18.00 Rs</span></div>
+      <div class="pip-metric-item"><span>VEL:</span><span id="pipVelocity" class="val">0.12 c</span></div>
+      <div class="pip-metric-item"><span>TIDAL:</span><span id="pipTidal" class="val">0.2 g</span></div>
+      <div class="pip-metric-item"><span>TEMP:</span><span id="pipTemp" class="val val-hot">3,200 K</span></div>
     </div>
   </aside>
 
-  <!-- 🌟 1. 頂部常駐：實時物理遙測看板 (Top Telemetry Bar) -->
+  <!-- 頂部極簡狀態列 -->
   <header id="top-telemetry-hud" class="top-hud-bar">
-    <div class="top-nav-row">
-      <div class="sys-status">
-        <span class="status-dot"></span>
-        <span class="status-text">HUD ONLINE</span>
-      </div>
-      <div class="mode-switcher" role="radiogroup">
-        <button id="mode-basic" class="mode-btn active" type="button">🚀 探索</button>
-        <button id="mode-pro" class="mode-btn" type="button">⚛️ 科研</button>
-      </div>
-      <div id="missionText" class="top-mission-pill">
-        任務：收集 <span class="highlight">3 顆相對論光譜</span>
-      </div>
-      <nav class="lang-switcher">
-        <button id="btn-zh" class="lang-btn active" type="button">繁中</button>
-        <button id="btn-en" class="lang-btn" type="button">EN</button>
-      </nav>
+    <div class="sys-status">
+      <span class="status-dot"></span>
+      <span class="status-text">HUD ONLINE</span>
     </div>
-
-    <!-- 頂部實時數據膠囊 -->
-    <div class="top-telemetry-capsules">
-      <div class="telemetry-pill">
-        <span class="pill-label" id="label-mass-title">質量</span>
-        <span class="pill-val val-white" id="massValDisplay">2.5 <small>M☉</small></span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="pill-label" id="label-isco">ISCO</span>
-        <span class="pill-val val-cyan" id="iscoVal">15.0 <small>Rs</small></span>
-      </div>
-      <div class="telemetry-pill">
-        <span class="pill-label" id="label-photon">光子球</span>
-        <span class="pill-val val-purple" id="photonVal">7.5 <small>Rs</small></span>
-      </div>
-      <div class="telemetry-pill sub-pill">
-        <span class="pill-label">都卜勒 (δ)</span>
-        <span class="pill-val val-cyan" id="telemetryDoppler">1.42</span>
-      </div>
-      <div class="telemetry-pill sub-pill">
-        <span class="pill-label">紅移 (1+z)</span>
-        <span class="pill-val val-amber" id="telemetryRedshift">1.28</span>
-      </div>
-      <div class="telemetry-pill sub-pill">
-        <span class="pill-label">度規</span>
-        <span class="val-chip status-stable" id="horizonState">STABLE</span>
-      </div>
+    <div class="mode-switcher" role="radiogroup">
+      <button id="mode-basic" class="mode-btn active" type="button">🚀 探索</button>
+      <button id="mode-pro" class="mode-btn" type="button">⚛️ 科研</button>
     </div>
+    <div id="missionText" class="top-mission-pill">
+      任務：收集 <span class="highlight">3 顆相對論光譜</span>
+    </div>
+    <nav class="lang-switcher">
+      <button id="btn-zh" class="lang-btn active" type="button">繁中</button>
+      <button id="btn-en" class="lang-btn" type="button">EN</button>
+    </nav>
   </header>
 
-  <!-- 🌟 2. 底部超窄常駐：操控與發射指令欄 (Bottom Command Bar) -->
+  <!-- 🌟 底部一體化 3A 級太空艙控制台 -->
   <footer id="bottom-command-hud" class="bottom-hud-bar">
+    <!-- 核心數據甲板 -->
+    <section class="telemetry-deck-row" aria-label="核心數據">
+      <div class="telemetry-card primary-reactor">
+        <div class="deck-tag" id="label-mass-title">質量 (MASS)</div>
+        <div class="deck-val" id="massValDisplay">2.5 <small>M☉</small></div>
+      </div>
+      <div class="telemetry-card">
+        <div class="deck-tag" id="label-isco">ISCO</div>
+        <div class="deck-val val-cyan" id="iscoVal">15.0 <small>Rs</small></div>
+      </div>
+      <div class="telemetry-card">
+        <div class="deck-tag" id="label-photon">光子球</div>
+        <div class="deck-val val-purple" id="photonVal">7.5 <small>Rs</small></div>
+      </div>
+      <div class="telemetry-card sub-pill">
+        <div class="deck-tag">都卜勒 (δ)</div>
+        <div class="deck-val val-cyan" id="telemetryDoppler">1.42</div>
+      </div>
+      <div class="telemetry-card sub-pill">
+        <div class="deck-tag">紅移 (1+z)</div>
+        <div class="deck-val val-amber" id="telemetryRedshift">1.28</div>
+      </div>
+      <div class="telemetry-card sub-pill">
+        <div class="deck-tag">度規</div>
+        <div style="padding-top:2px;"><span class="val-chip status-stable" id="horizonState">STABLE</span></div>
+      </div>
+    </section>
+
     <!-- 演化時間軸控制器 -->
     <div class="bottom-evolution-strip">
       <div class="evo-mini-meta">
@@ -168,16 +143,16 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/postprocessing/UnrealBloomPass.js"></script>
 
   <!-- 業務模組 -->
-  <script src="js/i18n.js?v=11.0"></script>
-  <script src="js/physics.js?v=11.0"></script>
-  <script src="js/audio.js?v=11.0"></script>
-  <script src="js/shaders.js?v=11.0"></script>
-  <script src="js/scene.js?v=11.0"></script>
-  <script src="js/particles.js?v=11.0"></script>
-  <script src="js/probe.js?v=11.0"></script>
-  <script src="js/evolution.js?v=11.0"></script>
-  <script src="js/narrative.js?v=11.0"></script>
-  <script src="js/main.js?v=11.0"></script>
+  <script src="js/i18n.js?v=11.2"></script>
+  <script src="js/physics.js?v=11.2"></script>
+  <script src="js/audio.js?v=11.2"></script>
+  <script src="js/shaders.js?v=11.2"></script>
+  <script src="js/scene.js?v=11.2"></script>
+  <script src="js/particles.js?v=11.2"></script>
+  <script src="js/probe.js?v=11.2"></script>
+  <script src="js/evolution.js?v=11.2"></script>
+  <script src="js/narrative.js?v=11.2"></script>
+  <script src="js/main.js?v=11.2"></script>
 
   <script>
     if ('serviceWorker' in navigator) {
