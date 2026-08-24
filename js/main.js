@@ -1,10 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const uiPanel = document.getElementById('ui-panel');
-  if (uiPanel) {
-    uiPanel.style.opacity = '0';
-    uiPanel.style.transition = 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
-  }
-
   // 1. 安全初始化各模組
   try {
     if (typeof window.I18N !== 'undefined' && window.I18N.init) window.I18N.init();
@@ -25,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.error('模組初始化異常:', err);
   }
 
-  // 解鎖音訊 (使用者首次互動)
+  // 首次點擊解鎖音訊
   const unlockAudio = () => {
     if (typeof window.AudioManager !== 'undefined') {
       if (!window.AudioManager.isInitialized) {
@@ -38,39 +32,39 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('click', unlockAudio, { once: true });
   window.addEventListener('touchstart', unlockAudio, { once: true });
 
-  // 顯示 UI 面板
-  requestAnimationFrame(() => {
-    if (uiPanel) uiPanel.style.opacity = '1';
-  });
+  // 🌟 2. 抽屜展開 / 捲起邏輯
+  const uiDrawer = document.getElementById('ui-drawer');
+  const toggleDrawerBtn = document.getElementById('toggleDrawerBtn');
+  const drawerToggleText = document.getElementById('drawerToggleText');
+  const drawerToggleIcon = document.getElementById('drawerToggleIcon');
 
-  // 2. 手機折疊抽屜與畫布互動
-  const drawerHandle = document.getElementById('drawer-handle');
-  if (drawerHandle && uiPanel) {
-    drawerHandle.addEventListener('click', () => {
-      uiPanel.classList.toggle('collapsed');
-      const isExpanded = !uiPanel.classList.contains('collapsed');
-      drawerHandle.setAttribute('aria-expanded', isExpanded);
-    });
+  function toggleDrawer() {
+    if (!uiDrawer) return;
+    const isClosed = uiDrawer.classList.contains('drawer-closed');
+    if (isClosed) {
+      uiDrawer.classList.remove('drawer-closed');
+      if (drawerToggleText) drawerToggleText.textContent = window.I18N?.currentLang === 'en' ? 'Hide Controls' : '收起控制台';
+      if (drawerToggleIcon) drawerToggleIcon.textContent = '✖';
+    } else {
+      uiDrawer.classList.add('drawer-closed');
+      if (drawerToggleText) drawerToggleText.textContent = window.I18N?.currentLang === 'en' ? 'Show Controls' : '展開控制台';
+      if (drawerToggleIcon) drawerToggleIcon.textContent = '⚙️';
+    }
+    if (typeof window.AudioManager !== 'undefined') window.AudioManager.playUITick?.();
   }
 
+  toggleDrawerBtn?.addEventListener('click', toggleDrawer);
+
+  // 🌟 觸控/拖曳畫布旋轉黑洞時，自動捲起收起抽屜
   const canvasContainer = document.getElementById('canvas-container');
-  if (canvasContainer && uiPanel) {
-    canvasContainer.addEventListener('touchstart', () => {
-      if (!uiPanel.classList.contains('collapsed') && window.innerWidth <= 640) {
-        uiPanel.classList.add('collapsed');
+  if (canvasContainer && uiDrawer) {
+    canvasContainer.addEventListener('pointerdown', () => {
+      if (!uiDrawer.classList.contains('drawer-closed')) {
+        uiDrawer.classList.add('drawer-closed');
+        if (drawerToggleText) drawerToggleText.textContent = window.I18N?.currentLang === 'en' ? 'Show Controls' : '展開控制台';
+        if (drawerToggleIcon) drawerToggleIcon.textContent = '⚙️';
       }
-    }, { passive: true });
-  }
-
-  // 手機頂部狀態同步函數
-  function syncMobileTop(mass, isco, stageName) {
-    const mobMass = document.getElementById('mob-mass');
-    const mobIsco = document.getElementById('mob-isco');
-    const mobStage = document.getElementById('mob-stage');
-
-    if (mobMass && mass !== undefined) mobMass.textContent = `${mass.toFixed(1)} M☉`;
-    if (mobIsco && isco !== undefined) mobIsco.textContent = `${isco.toFixed(1)} Rs`;
-    if (mobStage && stageName) mobStage.textContent = stageName;
+    });
   }
 
   // 3. 狀態管理
@@ -83,22 +77,13 @@ document.addEventListener('DOMContentLoaded', () => {
     el.classList.remove('flash');
     void el.offsetWidth;
     el.classList.add('flash');
-    if (typeof window.AudioManager !== 'undefined') {
-      window.AudioManager.playUITick?.();
-    }
   }
 
-  // 4. 雙模式切換 (探索 vs 科研)
+  // 4. 雙模式切換
   const modeBasicBtn = document.getElementById('mode-basic');
   const modeProBtn = document.getElementById('mode-pro');
 
   function switchMode(mode) {
-    if (uiPanel) {
-      uiPanel.classList.remove('hud-reconfiguring');
-      void uiPanel.offsetWidth;
-      uiPanel.classList.add('hud-reconfiguring');
-    }
-
     if (mode === 'pro') {
       modeProBtn?.classList.add('active');
       modeBasicBtn?.classList.remove('active');
@@ -112,10 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.body.classList.add('mode-basic');
       window.I18N?.setMode('basic');
     }
-
-    if (typeof window.AudioManager !== 'undefined') {
-      window.AudioManager.playUITick?.();
-    }
+    if (typeof window.AudioManager !== 'undefined') window.AudioManager.playUITick?.();
   }
 
   modeBasicBtn?.addEventListener('click', () => switchMode('basic'));
@@ -135,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.I18N?.setLang('en');
   });
 
-  // 6. 滑塊互動綁定
+  // 6. 滑塊綁定
   const speedRange = document.getElementById('speedRange');
   const speedVal = document.getElementById('speedVal');
   speedRange?.addEventListener('input', (e) => {
@@ -159,16 +141,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (iscoVal) iscoVal.innerHTML = `${(rawMass * 6.0).toFixed(1)} <small>Rs</small>`;
     if (photonVal) photonVal.innerHTML = `${(rawMass * 3.0).toFixed(1)} <small>Rs</small>`;
 
-    syncMobileTop(rawMass, rawMass * 6.0);
     triggerFlash(massVal);
-    if (massValDisplay) triggerFlash(massValDisplay);
-
     if (typeof window.SceneManager !== 'undefined') {
       window.SceneManager.updateBlackHoleScale(massScale);
     }
   });
 
-  // 7. 演化時間軸控制器事件綁定
+  // 7. 演化時間軸控制器
   const evoSlider = document.getElementById('evolutionSlider');
   evoSlider?.addEventListener('input', (e) => {
     if (typeof window.EvolutionManager !== 'undefined') {
@@ -206,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 8. 發射探測器按鈕
+  // 8. 發射探測器
   const launchBtn = document.getElementById('launchBtn');
   launchBtn?.addEventListener('click', () => {
     if (typeof window.ProbeManager !== 'undefined') {
@@ -217,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 9. 科研模式實時遙測更新
+  // 9. 科研模式遙測
   function updateProTelemetry() {
     if (window.I18N?.currentMode !== 'pro') return;
     const dopplerEl = document.getElementById('telemetryDoppler');
@@ -225,11 +204,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (dopplerEl) {
       const delta = (1.0 + (speedFactor / 3.0) * 0.42).toFixed(3);
-      dopplerEl.textContent = `γ⁻¹(1 - β·cosθ)⁻¹ = ${delta}`;
+      dopplerEl.textContent = delta;
     }
     if (redshiftEl) {
       const z = (1.0 / Math.sqrt(Math.max(0.1, 1.0 - (2.0 * massScale) / 12.0))).toFixed(3);
-      redshiftEl.textContent = `(1 - 2M/r)⁻¹/² = ${z}`;
+      redshiftEl.textContent = z;
     }
   }
 
@@ -248,21 +227,10 @@ document.addEventListener('DOMContentLoaded', () => {
       window.SceneManager.photonRing.quaternion.copy(window.SceneManager.camera.quaternion);
     }
 
-    try {
-      window.ParticleManager?.update(delta, speedFactor, massScale);
-    } catch (e) {}
-
-    try {
-      window.ProbeManager?.update(massScale);
-    } catch (e) {}
-
-    try {
-      window.EvolutionManager?.update(delta, elapsedTime);
-    } catch (e) {}
-
-    try {
-      window.AudioManager?.updateListenerAndParams(window.SceneManager?.camera, massScale, speedFactor);
-    } catch (e) {}
+    try { window.ParticleManager?.update(delta, speedFactor, massScale); } catch (e) {}
+    try { window.ProbeManager?.update(massScale); } catch (e) {}
+    try { window.EvolutionManager?.update(delta, elapsedTime); } catch (e) {}
+    try { window.AudioManager?.updateListenerAndParams(window.SceneManager?.camera, massScale, speedFactor); } catch (e) {}
 
     updateProTelemetry();
 
