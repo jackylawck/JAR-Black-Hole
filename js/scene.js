@@ -17,9 +17,9 @@ window.SceneManager = {
     this.scene = new THREE.Scene();
 
     const isPortrait = height > width;
-    // 🌟 相機位置：微俯角，令吸積盤有深度立體感
-    this.camera = new THREE.PerspectiveCamera(isPortrait ? 52 : 40, width / height, 0.1, 1500);
-    this.camera.position.set(0, isPortrait ? 4.5 : 3.2, isPortrait ? 21.0 : 17.0);
+    // 🌟 相機位置：端正居中微俯，黑洞完美呈現在螢幕中央
+    this.camera = new THREE.PerspectiveCamera(isPortrait ? 52 : 38, width / height, 0.1, 1500);
+    this.camera.position.set(0, isPortrait ? 3.8 : 2.5, isPortrait ? 22.0 : 16.0);
 
     this.renderer = new THREE.WebGLRenderer({ 
       antialias: true, 
@@ -41,8 +41,8 @@ window.SceneManager = {
       this.controls.dampingFactor = 0.05;
       this.controls.maxDistance = 60;
       this.controls.minDistance = 4.0;
-      // 🌟 焦點往上推，黑洞穩居畫面上半部 55% 黃金位置
-      this.controls.target.set(0, isPortrait ? 1.8 : 1.2, 0);
+      // 🌟 焦點設定在中心稍偏上，徹底避開頂部與底部 HUD
+      this.controls.target.set(0, isPortrait ? 0.6 : 0.2, 0);
       this.controls.update();
     }
 
@@ -93,15 +93,15 @@ window.SceneManager = {
     );
     this.scene.add(starMesh);
 
-    // 🌟 5. 後處理泛光 (調低 Strength 與 Radius，防止吸積盤死白過曝)
+    // 🌟 5. 後處理泛光 (調優 Bloom，消除死白過曝)
     try {
       if (typeof THREE.EffectComposer !== 'undefined' && typeof THREE.UnrealBloomPass !== 'undefined') {
         const renderScene = new THREE.RenderPass(this.scene, this.camera);
         this.bloomPass = new THREE.UnrealBloomPass(
           new THREE.Vector2(width, height),
-          0.85, // 泛光強度 (由 2.0 降至 0.85，保留粒子細節)
-          0.35, // 半徑
-          0.2   // 閾值
+          0.85,
+          0.35,
+          0.2
         );
         this.composer = new THREE.EffectComposer(this.renderer);
         this.composer.addPass(renderScene);
@@ -120,7 +120,7 @@ window.SceneManager = {
     const w = window.innerWidth;
     const h = window.innerHeight;
 
-    // 1. 主畫面渲染
+    // 1. 全螢幕主畫面渲染
     this.renderer.setViewport(0, 0, w, h);
     this.renderer.setScissor(0, 0, w, h);
     this.renderer.setScissorTest(false);
@@ -133,10 +133,10 @@ window.SceneManager = {
 
     // 2. 右上角探測器 POV 畫中畫
     if (window.ProbeManager?.activeProbe && window.ProbeManager?.probeCamera) {
-      const pipW = Math.min(220, w * 0.32);
+      const pipW = Math.min(200, w * 0.32);
       const pipH = pipW * 0.72;
-      const pipX = w - pipW - 14;
-      const pipY = h - pipH - 14;
+      const pipX = w - pipW - 12;
+      const pipY = h - pipH - 65;
 
       this.renderer.clearDepth();
       this.renderer.setScissorTest(true);
@@ -163,10 +163,10 @@ window.SceneManager = {
     const isPortrait = height > width;
 
     this.camera.aspect = width / height;
-    this.camera.fov = isPortrait ? 52 : 40;
-    this.camera.position.set(0, isPortrait ? 4.5 : 3.2, isPortrait ? 21.0 : 17.0);
+    this.camera.fov = isPortrait ? 52 : 38;
+    this.camera.position.set(0, isPortrait ? 3.8 : 2.5, isPortrait ? 22.0 : 16.0);
     if (this.controls) {
-      this.controls.target.set(0, isPortrait ? 1.8 : 1.2, 0);
+      this.controls.target.set(0, isPortrait ? 0.6 : 0.2, 0);
       this.controls.update();
     }
     this.camera.updateProjectionMatrix();
