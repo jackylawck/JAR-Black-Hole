@@ -22,36 +22,31 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self';">
 
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <link rel="stylesheet" href="style.css?v=10.2">
+  <link rel="stylesheet" href="style.css?v=11.0">
 </head>
 <body>
-  <!-- 深空星雲背景 -->
+  <!-- 深空背景 -->
   <div id="starfield-bg" aria-hidden="true"></div>
 
-  <!-- 3D 渲染容器 -->
+  <!-- 3D 渲染畫布容器 (佔滿 100% 畫面) -->
   <main id="canvas-container" role="main"></main>
 
   <!-- 🛰️ 探測器第一人稱視角畫中畫 HUD (右上角) -->
   <aside id="probePipContainer" class="probe-pip-deck" aria-label="探測器實時遙測視角">
     <div class="pip-crosshair"></div>
-
-    <!-- 探測器機體前置全息投影 (翼尖與天線) -->
     <div class="pip-chassis-overlay" aria-hidden="true">
       <div class="pip-antenna-left"></div>
       <div class="pip-antenna-right"></div>
       <div class="pip-wing-left"></div>
       <div class="pip-wing-right"></div>
     </div>
-
     <div class="pip-header">
       <div class="pip-title-wrap">
         <span class="pip-live-dot"></span>
-        <span class="pip-title">PROBE-01 POV</span>
+        <span class="pip-title">PROBE POV</span>
       </div>
       <span id="pipHorizonAlert" class="pip-status-tag">APPROACHING</span>
     </div>
-
-    <!-- 探測器四聯實時儀表板 -->
     <div class="pip-dashboard-grid">
       <div class="pip-metric-item">
         <span>DIST:</span>
@@ -72,116 +67,95 @@
     </div>
   </aside>
 
-  <!-- 3A 太空船透視座艙 HUD 主面板 -->
-  <aside class="hud-cockpit" id="ui-panel" aria-label="全息太空座艙終端">
-    <!-- 🌟 控制台收起/展開拉手 -->
-    <div id="drawerToggleBar" class="cockpit-toggle-bar" role="button" aria-expanded="true">
-      <div class="toggle-pill"></div>
-      <span id="drawerToggleText" class="toggle-text">▼ 捲起控制台 (只留實時數據)</span>
+  <!-- 🌟 1. 頂部常駐：實時物理遙測看板 (Top Telemetry Bar) -->
+  <header id="top-telemetry-hud" class="top-hud-bar">
+    <div class="top-nav-row">
+      <div class="sys-status">
+        <span class="status-dot"></span>
+        <span class="status-text">HUD ONLINE</span>
+      </div>
+      <div class="mode-switcher" role="radiogroup">
+        <button id="mode-basic" class="mode-btn active" type="button">🚀 探索</button>
+        <button id="mode-pro" class="mode-btn" type="button">⚛️ 科研</button>
+      </div>
+      <div id="missionText" class="top-mission-pill">
+        任務：收集 <span class="highlight">3 顆相對論光譜</span>
+      </div>
+      <nav class="lang-switcher">
+        <button id="btn-zh" class="lang-btn active" type="button">繁中</button>
+        <button id="btn-en" class="lang-btn" type="button">EN</button>
+      </nav>
     </div>
 
-    <!-- 頂部狀態列 -->
-    <div class="hud-status-strip">
-      <div class="status-module">
-        <div class="beacon-pulse">
-          <span class="pulse-dot"></span>
-          <span class="beacon-label">HUD ONLINE</span>
-        </div>
-        <div class="mode-cluster" role="radiogroup">
-          <button id="mode-basic" class="mode-btn active" type="button">🚀 探索模式</button>
-          <button id="mode-pro" class="mode-btn" type="button">⚛️ 科研模式</button>
-        </div>
-        <nav class="lang-cluster">
-          <button id="btn-zh" class="lang-btn active" type="button">繁中</button>
-          <button id="btn-en" class="lang-btn" type="button">EN</button>
-        </nav>
+    <!-- 頂部實時數據膠囊 -->
+    <div class="top-telemetry-capsules">
+      <div class="telemetry-pill">
+        <span class="pill-label" id="label-mass-title">質量</span>
+        <span class="pill-val val-white" id="massValDisplay">2.5 <small>M☉</small></span>
       </div>
+      <div class="telemetry-pill">
+        <span class="pill-label" id="label-isco">ISCO</span>
+        <span class="pill-val val-cyan" id="iscoVal">15.0 <small>Rs</small></span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="pill-label" id="label-photon">光子球</span>
+        <span class="pill-val val-purple" id="photonVal">7.5 <small>Rs</small></span>
+      </div>
+      <div class="telemetry-pill sub-pill">
+        <span class="pill-label">都卜勒 (δ)</span>
+        <span class="pill-val val-cyan" id="telemetryDoppler">1.42</span>
+      </div>
+      <div class="telemetry-pill sub-pill">
+        <span class="pill-label">紅移 (1+z)</span>
+        <span class="pill-val val-amber" id="telemetryRedshift">1.28</span>
+      </div>
+      <div class="telemetry-pill sub-pill">
+        <span class="pill-label">度規</span>
+        <span class="val-chip status-stable" id="horizonState">STABLE</span>
+      </div>
+    </div>
+  </header>
 
-      <div class="objective-banner" id="missionText">
-        任務：發射探測器收集 <span class="glow-amber">3 顆相對論光譜</span>！
+  <!-- 🌟 2. 底部超窄常駐：操控與發射指令欄 (Bottom Command Bar) -->
+  <footer id="bottom-command-hud" class="bottom-hud-bar">
+    <!-- 演化時間軸控制器 -->
+    <div class="bottom-evolution-strip">
+      <div class="evo-mini-meta">
+        <span class="evo-mini-title">🌌 恆星演化:</span>
+        <span id="evolutionStageText" class="evo-mini-badge">黑洞奇異點 (事件視界與吸積盤)</span>
+      </div>
+      <div class="evo-mini-actions">
+        <button type="button" id="prevStageBtn" class="evo-btn">⏮</button>
+        <button type="button" id="playPauseBtn" class="evo-btn play-btn">▶ 播放</button>
+        <button type="button" id="nextStageBtn" class="evo-btn">⏭</button>
+        <input type="range" id="evolutionSlider" min="0" max="1" step="0.002" value="1.0" aria-label="演化時間軸">
       </div>
     </div>
 
-    <!-- 🌟 核心數據甲板 (常駐顯示實時變化) -->
-    <section class="telemetry-deck" aria-label="核心物理遙測">
-      <div class="telemetry-card primary-reactor">
-        <div class="deck-tag" id="label-mass-title">引力質量 (CORE MASS)</div>
-        <div class="deck-val" id="massValDisplay">2.5 <small>M☉</small></div>
-      </div>
-      <div class="telemetry-card">
-        <div class="deck-tag" id="label-isco">ISCO 軌道 (r_isco)</div>
-        <div class="deck-val val-cyan" id="iscoVal">15.0 <small>Rs</small></div>
-      </div>
-      <div class="telemetry-card">
-        <div class="deck-tag" id="label-photon">光子球半徑 (r_ph)</div>
-        <div class="deck-val val-purple" id="photonVal">7.5 <small>Rs</small></div>
-      </div>
-      <div class="telemetry-card sub-tier">
-        <div class="deck-tag">都卜勒 (δ)</div>
-        <div class="deck-val val-cyan" id="telemetryDoppler">1.42 <small>DOP</small></div>
-      </div>
-      <div class="telemetry-card sub-tier">
-        <div class="deck-tag">引力紅移 (1+z)</div>
-        <div class="deck-val val-amber" id="telemetryRedshift">1.28 <small>z</small></div>
-      </div>
-    </section>
-
-    <!-- ⚛️ 科研模式專屬：即時測地線動態串流日誌 (加入 collapsible-section 確保捲起時乾淨) -->
-    <div class="pro-terminal-stream-box collapsible-section" id="proTerminalLog" aria-label="相對論測地線實時日誌">
-      <div class="pro-stream-line">>> RK4 SOLVER: METRIC TENSOR INITIALIZED [g_μν]</div>
-    </div>
-
-    <!-- 恆星演化時間軸 -->
-    <section class="evolution-deck collapsible-section" aria-label="恆星演化歷程">
-      <div class="evo-hud-bar">
-        <span class="evo-hud-title">🌌 恆星演化歷程 (TIMELINE)</span>
-        <span id="evolutionStageText" class="evo-hud-badge">黑洞奇異點 (事件視界與吸積盤)</span>
-      </div>
-      <div id="evolutionStageDesc" class="evo-hud-desc">
-        殘餘核心質量突破歐本海默極限，核心徹底塌縮形成事件視界。
-      </div>
-      <input type="range" id="evolutionSlider" min="0" max="1" step="0.002" value="1.0" aria-label="演化時間軸進度">
-      <div class="evo-deck-controls">
-        <button type="button" id="prevStageBtn">⏮ 上一階段</button>
-        <button type="button" id="playPauseBtn" class="play-glow-btn">▶ 演化播放</button>
-        <button type="button" id="nextStageBtn">⏭ 下一階段</button>
-      </div>
-    </section>
-
-    <!-- 底部指令甲板 -->
-    <section class="command-deck collapsible-section" aria-label="操控指令甲板">
-      <div class="slider-unit">
-        <div class="slider-meta">
-          <label for="massRange" id="label-mass">質量調節</label>
-          <span id="massVal" class="val-chip">2.5 M☉</span>
+    <!-- 參數微調與發射按鈕 -->
+    <div class="bottom-controls-strip">
+      <div class="mini-slider-box">
+        <div class="slider-info">
+          <label for="massRange" id="label-mass">質量</label>
+          <span id="massVal" class="slider-badge">2.5 M☉</span>
         </div>
         <input type="range" id="massRange" min="1.0" max="3.0" step="0.1" value="2.5">
       </div>
 
-      <div class="slider-unit">
-        <div class="slider-meta">
-          <label for="speedRange" id="label-speed">自轉速度</label>
-          <span id="speedVal" class="val-chip">1.0 c</span>
+      <div class="mini-slider-box">
+        <div class="slider-info">
+          <label for="speedRange" id="label-speed">自轉</label>
+          <span id="speedVal" class="slider-badge">1.0 c</span>
         </div>
         <input type="range" id="speedRange" min="0.1" max="3.0" step="0.1" value="1.0">
       </div>
 
-      <div class="slider-unit">
-        <div class="slider-meta">
-          <label>度規曲率</label>
-          <span class="val-chip status-stable" id="horizonState">STABLE</span>
-        </div>
-        <div style="font-size:0.5rem; color:#64748b; font-family:'SF Mono',monospace; padding-top:2px;">
-          ds² = -(1-2M/r)dt²
-        </div>
-      </div>
-
-      <button id="launchBtn" type="button" aria-label="發射探測器">
+      <button id="launchBtn" type="button" class="bottom-launch-action" aria-label="發射探測器">
         <div class="btn-glow"></div>
         <span id="btn-launch-text">🚀 發射探測器</span>
       </button>
-    </section>
-  </aside>
+    </div>
+  </footer>
 
   <!-- CDN 依賴 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -194,16 +168,16 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/postprocessing/UnrealBloomPass.js"></script>
 
   <!-- 業務模組 -->
-  <script src="js/i18n.js?v=10.2"></script>
-  <script src="js/physics.js?v=10.2"></script>
-  <script src="js/audio.js?v=10.2"></script>
-  <script src="js/shaders.js?v=10.2"></script>
-  <script src="js/scene.js?v=10.2"></script>
-  <script src="js/particles.js?v=10.2"></script>
-  <script src="js/probe.js?v=10.2"></script>
-  <script src="js/evolution.js?v=10.2"></script>
-  <script src="js/narrative.js?v=10.2"></script>
-  <script src="js/main.js?v=10.2"></script>
+  <script src="js/i18n.js?v=11.0"></script>
+  <script src="js/physics.js?v=11.0"></script>
+  <script src="js/audio.js?v=11.0"></script>
+  <script src="js/shaders.js?v=11.0"></script>
+  <script src="js/scene.js?v=11.0"></script>
+  <script src="js/particles.js?v=11.0"></script>
+  <script src="js/probe.js?v=11.0"></script>
+  <script src="js/evolution.js?v=11.0"></script>
+  <script src="js/narrative.js?v=11.0"></script>
+  <script src="js/main.js?v=11.0"></script>
 
   <script>
     if ('serviceWorker' in navigator) {
