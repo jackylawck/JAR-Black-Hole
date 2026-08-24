@@ -25,104 +25,148 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- 深空背景 -->
+  <!-- 深空星雲背景 -->
   <div id="starfield-bg" aria-hidden="true"></div>
 
   <!-- 3D 渲染容器 -->
   <main id="canvas-container" role="main"></main>
 
-  <!-- 3A 駕駛艙 HUD 主容器 -->
-  <aside class="hud-main" id="ui-panel" aria-label="黑洞全息駕駛艙終端">
+  <!-- 🛰️ 探測器第一人稱視角畫中畫 HUD (右上角) -->
+  <aside id="probePipContainer" class="probe-pip-deck" aria-label="探測器實時遙測視角">
+    <div class="pip-crosshair"></div>
+
+    <!-- 探測器機體前置全息投影 (翼尖與天線) -->
+    <div class="pip-chassis-overlay" aria-hidden="true">
+      <div class="pip-antenna-left"></div>
+      <div class="pip-antenna-right"></div>
+      <div class="pip-wing-left"></div>
+      <div class="pip-wing-right"></div>
+    </div>
+
+    <div class="pip-header">
+      <div class="pip-title-wrap">
+        <span class="pip-live-dot"></span>
+        <span class="pip-title">PROBE-01 POV</span>
+      </div>
+      <span id="pipHorizonAlert" class="pip-status-tag">APPROACHING</span>
+    </div>
+
+    <!-- 探測器四聯實時儀表板 -->
+    <div class="pip-dashboard-grid">
+      <div class="pip-metric-item">
+        <span>DIST:</span>
+        <span id="pipDistance" class="val">18.00 Rs</span>
+      </div>
+      <div class="pip-metric-item">
+        <span>VEL:</span>
+        <span id="pipVelocity" class="val">0.12 c</span>
+      </div>
+      <div class="pip-metric-item">
+        <span>TIDAL:</span>
+        <span id="pipTidal" class="val">0.2 g</span>
+      </div>
+      <div class="pip-metric-item">
+        <span>TEMP:</span>
+        <span id="pipTemp" class="val val-hot">3,200 K</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 3A 太空船透視座艙 HUD 主面板 -->
+  <aside class="hud-cockpit" id="ui-panel" aria-label="全息太空座艙終端">
     <!-- 頂部狀態列 -->
-    <div class="hud-top-row">
-      <div class="hud-left-group">
-        <div class="sys-status">
-          <span class="status-dot"></span>
-          <span class="status-text">COCKPIT HUD // ONLINE</span>
+    <div class="hud-status-strip">
+      <div class="status-module">
+        <div class="beacon-pulse">
+          <span class="pulse-dot"></span>
+          <span class="beacon-label">HUD ONLINE</span>
         </div>
-        <div class="mode-switcher" role="radiogroup">
+        <div class="mode-cluster" role="radiogroup">
           <button id="mode-basic" class="mode-btn active" type="button">🚀 探索模式</button>
           <button id="mode-pro" class="mode-btn" type="button">⚛️ 科研模式</button>
         </div>
-        <nav class="lang-switcher">
+        <nav class="lang-cluster">
           <button id="btn-zh" class="lang-btn active" type="button">繁中</button>
           <button id="btn-en" class="lang-btn" type="button">EN</button>
         </nav>
       </div>
 
-      <div class="hud-right-group">
-        <div id="missionText" class="mission-text">
-          任務：發射探測器收集 <span class="highlight">3 顆相對論光譜</span>！
-        </div>
+      <div class="objective-banner" id="missionText">
+        任務：發射探測器收集 <span class="glow-amber">3 顆相對論光譜</span>！
       </div>
     </div>
 
-    <!-- 核心數據 HUD -->
-    <section class="core-hud" aria-label="核心物理遙測">
-      <div class="core-item">
-        <div class="lbl" id="label-mass-title">引力質量</div>
-        <div class="val val-white" id="massValDisplay">2.5 <small>M☉</small></div>
+    <!-- 核心數據甲板 (質量主反應爐 + 次級軌道 + 科研串流) -->
+    <section class="telemetry-deck" aria-label="核心物理遙測">
+      <div class="telemetry-card primary-reactor">
+        <div class="deck-tag" id="label-mass-title">引力質量 (CORE MASS)</div>
+        <div class="deck-val" id="massValDisplay">2.5 <small>M☉</small></div>
       </div>
-      <div class="core-item">
-        <div class="lbl" id="label-isco">ISCO 軌道</div>
-        <div class="val val-cyan" id="iscoVal">15.0 <small>Rs</small></div>
+      <div class="telemetry-card">
+        <div class="deck-tag" id="label-isco">ISCO 軌道 (r_isco)</div>
+        <div class="deck-val val-cyan" id="iscoVal">15.0 <small>Rs</small></div>
       </div>
-      <div class="core-item">
-        <div class="lbl" id="label-photon">光子球臨界</div>
-        <div class="val val-purple" id="photonVal">7.5 <small>Rs</small></div>
+      <div class="telemetry-card">
+        <div class="deck-tag" id="label-photon">光子球半徑 (r_ph)</div>
+        <div class="deck-val val-purple" id="photonVal">7.5 <small>Rs</small></div>
       </div>
-      <div class="core-item secondary">
-        <div class="lbl">都卜勒因子</div>
-        <div class="val val-cyan" id="telemetryDoppler">1.42 <small>δ</small></div>
+      <div class="telemetry-card sub-tier">
+        <div class="deck-tag">都卜勒 (δ)</div>
+        <div class="deck-val val-cyan" id="telemetryDoppler">1.42 <small>DOP</small></div>
       </div>
-      <div class="core-item secondary">
-        <div class="lbl">引力紅移</div>
-        <div class="val val-gold" id="telemetryRedshift">1.28 <small>1+z</small></div>
+      <div class="telemetry-card sub-tier">
+        <div class="deck-tag">引力紅移 (1+z)</div>
+        <div class="deck-val val-amber" id="telemetryRedshift">1.28 <small>z</small></div>
       </div>
     </section>
 
-    <!-- 演化時間軸 -->
-    <section class="evolution-drawer" aria-label="恆星演化歷程">
-      <div class="evo-header">
-        <span class="evo-title">🌌 恆星演化歷程</span>
-        <span id="evolutionStageText" class="evo-stage">黑洞奇異點 (事件視界與吸積盤)</span>
+    <!-- ⚛️ 科研模式專屬：即時測地線動態串流日誌 -->
+    <div class="pro-terminal-stream-box" id="proTerminalLog" aria-label="相對論測地線實時日誌">
+      <div class="pro-stream-line">>> RK4 SOLVER: METRIC TENSOR INITIALIZED [g_μν]</div>
+    </div>
+
+    <!-- 恆星演化史詩時間軸 -->
+    <section class="evolution-deck" aria-label="恆星演化歷程">
+      <div class="evo-hud-bar">
+        <span class="evo-hud-title">🌌 恆星演化歷程 (TIMELINE)</span>
+        <span id="evolutionStageText" class="evo-hud-badge">黑洞奇異點 (事件視界與吸積盤)</span>
       </div>
-      <div id="evolutionStageDesc" class="evo-desc">
+      <div id="evolutionStageDesc" class="evo-hud-desc">
         殘餘核心質量突破歐本海默極限，核心徹底塌縮形成事件視界。
       </div>
-      <input type="range" id="evolutionSlider" min="0" max="1" step="0.002" value="1.0" aria-label="演化時間軸">
-      <div class="evo-actions">
+      <input type="range" id="evolutionSlider" min="0" max="1" step="0.002" value="1.0" aria-label="演化時間軸進度">
+      <div class="evo-deck-controls">
         <button type="button" id="prevStageBtn">⏮ 上一階段</button>
-        <button type="button" id="playPauseBtn" class="play-btn">▶ 演化播放</button>
+        <button type="button" id="playPauseBtn" class="play-glow-btn">▶ 演化播放</button>
         <button type="button" id="nextStageBtn">⏭ 下一階段</button>
       </div>
     </section>
 
-    <!-- 底部控制區 -->
-    <section class="control-row" aria-label="操控參數">
-      <div class="control-group">
-        <div class="ctrl-header">
+    <!-- 底部指令甲板 (滑塊調節 + 高權重發射按鈕) -->
+    <section class="command-deck" aria-label="操控指令甲板">
+      <div class="slider-unit">
+        <div class="slider-meta">
           <label for="massRange" id="label-mass">質量調節</label>
-          <span id="massVal" class="badge">2.5 M☉</span>
+          <span id="massVal" class="val-chip">2.5 M☉</span>
         </div>
         <input type="range" id="massRange" min="1.0" max="3.0" step="0.1" value="2.5">
       </div>
 
-      <div class="control-group">
-        <div class="ctrl-header">
+      <div class="slider-unit">
+        <div class="slider-meta">
           <label for="speedRange" id="label-speed">自轉速度</label>
-          <span id="speedVal" class="badge">1.0 c</span>
+          <span id="speedVal" class="val-chip">1.0 c</span>
         </div>
         <input type="range" id="speedRange" min="0.1" max="3.0" step="0.1" value="1.0">
       </div>
 
-      <div class="control-group">
-        <div class="ctrl-header">
-          <label>視界狀態</label>
-          <span class="badge" id="horizonState">STABLE</span>
+      <div class="slider-unit">
+        <div class="slider-meta">
+          <label>度規曲率</label>
+          <span class="val-chip status-stable" id="horizonState">STABLE</span>
         </div>
-        <div style="font-size:0.5rem; color:#64748b; padding-top:2px;">
-          r_+ = 2GM/c²
+        <div style="font-size:0.5rem; color:#64748b; font-family:'SF Mono',monospace; padding-top:2px;">
+          ds² = -(1-2M/r)dt²
         </div>
       </div>
 
