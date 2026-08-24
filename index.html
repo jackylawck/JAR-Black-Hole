@@ -2,123 +2,156 @@
 <html lang="zh-HK">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta http-equiv="Content-Security-Policy" content="
-    default-src 'none';
-    script-src 'self' 'unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net;
-    style-src 'self' 'unsafe-inline';
-    img-src 'self' data: https:;
-    font-src 'self';
-    connect-src 'self';
-    manifest-src 'self';
-    worker-src 'self';
-    form-action 'none';
-    base-uri 'self';
-  ">
-  <meta http-equiv="X-Content-Type-Options" content="nosniff">
-  <meta name="referrer" content="strict-origin-when-cross-origin">
-
-  <title>J.A.R. 黑洞 3D - Black Hole 3D</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, user-scalable=no">
+  <title>J.A.R. 黑洞 3D - 廣義相對論實時模擬器</title>
+  
+  <!-- SEO & Open Graph 元數據 -->
+  <meta name="description" content="J.A.R. 廣義相對論實時 3D 黑洞天體物理模擬器，具備 GPGPU 吸積盤、光子環與 3D HRTF 空間化音效。">
+  <meta name="author" content="Jacky Law">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="J.A.R. 黑洞 3D - 廣義相對論實時模擬器">
+  <meta property="og:description" content="實時廣義相對論 3D 黑洞物理模擬與電影級聽覺體驗。">
+  <meta property="og:image" content="assets/icons/icon-512x512.png">
+  
+  <!-- PWA 與獨立運行設定 -->
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#060c1e">
-
-  <!-- iOS Safari PWA -->
+  <meta name="theme-color" content="#020617">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="黑洞 3D">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192x192.png">
 
-  <!-- Three.js Core & Controls via CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <!-- 嚴格 CSP 安全防護政策 -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self';">
 
-  <!-- Post-processing -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+  <!-- 核心 CDN 資源預解析與預載入 -->
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" as="script">
+  <link rel="preload" href="style.css" as="style">
+
+  <!-- 樣式表 -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- JSON-LD 結構化資料 (Schema.org) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "J.A.R. 黑洞 3D",
+    "description": "實時廣義相對論 3D 黑洞物理模擬與 STEM 科學教育體驗",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Web Browser",
+    "author": {
+      "@type": "Person",
+      "name": "Jacky Law"
+    }
+  }
+  </script>
 </head>
 <body>
+  <!-- 三層 Parallax 視差星空背景 -->
+  <div id="starfield-bg" aria-hidden="true"></div>
 
-  <main id="canvas-container"></main>
+  <!-- 3D WebGL 渲染畫布容器 -->
+  <main id="canvas-container" role="main"></main>
 
-  <aside id="ui-panel">
-    <nav class="lang-switcher">
-      <button class="lang-btn active" data-lang="zh-HK">繁中</button>
-      <button class="lang-btn" data-lang="en">EN</button>
+  <!-- 3A 旗艦級玻璃態 HUD 介面 -->
+  <aside id="ui-panel" aria-label="黑洞控制終端">
+    <!-- 語言切換選單 -->
+    <nav class="lang-switcher" aria-label="切換語言">
+      <button id="btn-zh" class="lang-btn active" type="button">繁中</button>
+      <button id="btn-en" class="lang-btn" type="button">EN</button>
     </nav>
 
     <header>
-      <h1 data-i18n="title">🌌 J.A.R. 黑洞 3D</h1>
-      <h2 data-i18n="subtitle">JOINT APPLIED RESEARCH • ASTROPHYSICS DIVISION</h2>
+      <h1 id="ui-title">J.A.R. 黑洞 3D</h1>
+      <h2 id="ui-subtitle">廣義相對論實時模擬器</h2>
+      <p id="ui-desc">觀測極限重力透鏡、時間膨脹與都卜勒聚束效應。</p>
     </header>
 
-    <p data-i18n="desc">實時計算愛因斯坦廣義相對論「重力透鏡」、RK4 測地線光線彎曲與相對論性都卜勒聚束效應。</p>
+    <!-- 任務 HUD 條 -->
+    <div class="mission-hud" role="status" aria-live="polite">
+      <span class="mission-badge">OBJECTIVE</span>
+      <div id="missionText" class="mission-text">任務一：光子球軌道標定 (調整質量至 3.5 M☉)</div>
+    </div>
 
-    <section class="controls-section">
+    <!-- 控制面板項 -->
+    <section class="controls-wrapper" aria-label="物理與渲染參數調節">
       <div class="control-group">
         <label for="speedRange">
-          <span data-i18n="speedLabel">自轉速度 (Rotation Speed)</span>
+          <span id="label-speed">吸積盤自轉速度</span>
           <span id="speedVal" class="val-label">1.0 c</span>
         </label>
-        <input type="range" id="speedRange" min="0.2" max="3.0" step="0.1" value="1.0">
+        <input type="range" id="speedRange" min="0.1" max="3.0" step="0.1" value="1.0" aria-valuemin="0.1" aria-valuemax="3.0" aria-valuenow="1.0">
       </div>
 
       <div class="control-group">
         <label for="massRange">
-          <span data-i18n="massLabel">引力質量 (Gravitational Mass)</span>
+          <span id="label-mass">黑洞引力質量</span>
           <span id="massVal" class="val-label">2.5 M☉</span>
         </label>
-        <input type="range" id="massRange" min="1.0" max="5.0" step="0.2" value="2.5">
+        <input type="range" id="massRange" min="1.0" max="5.0" step="0.1" value="2.5" aria-valuemin="1.0" aria-valuemax="5.0" aria-valuenow="2.5">
       </div>
 
       <div class="control-group">
         <label for="bloomRange">
-          <span data-i18n="bloomLabel">輝光強度 (Bloom Intensity)</span>
-          <span id="bloomVal" class="val-label">1.5</span>
+          <span id="label-bloom">光子球發光強度</span>
+          <span id="bloomVal" class="val-label">1.6</span>
         </label>
-        <input type="range" id="bloomRange" min="0.0" max="3.0" step="0.1" value="1.5">
+        <input type="range" id="bloomRange" min="0.0" max="3.5" step="0.1" value="1.6" aria-valuemin="0.0" aria-valuemax="3.5" aria-valuenow="1.6">
       </div>
+
+      <button id="launchBtn" type="button" aria-label="發射探測器觀測意粉化">
+        <span id="btn-launch-text">🚀 發射探測器 (意粉化觀測)</span>
+      </button>
     </section>
 
-    <section class="physics-card">
-      <div class="physics-card-title" data-i18n="statsTitle">🔬 即時相對論數據 (Live Metrics)</div>
+    <!-- 實時天體物理看板 -->
+    <section class="physics-card" aria-label="物理數值看板">
+      <div class="physics-card-title" id="telemetry-title">相對論遙測數據</div>
       
       <div class="stat-row">
-        <span data-i18n="iscoLabel">ISCO 內邊界 (3 Rs):</span>
-        <span id="iscoVal" class="val purple-glow">15.0 Rs</span>
+        <span id="label-isco">最內穩定圓軌道 (ISCO)</span>
+        <span id="iscoVal" class="val blue-glow">15.0 Rs</span>
       </div>
-
+      
       <div class="stat-row">
-        <span data-i18n="photonRadiusLabel">光子球半徑 (1.5 Rs):</span>
-        <span id="photonVal" class="val blue-glow">7.5 Rs</span>
+        <span id="label-photon">光子球臨界半徑</span>
+        <span id="photonVal" class="val purple-glow">7.5 Rs</span>
       </div>
-
-      <div class="stat-row note" data-i18n="dopplerStatus">
-        都卜勒效應狀態: 左側藍移 (增亮) / 右側紅移 (衰減)
+      
+      <div class="stat-row note" id="ui-note">
+        * 當粒子穿越 ISCO (最內穩定圓軌道) 後，軌道失去穩定性直墜事件視界。
       </div>
     </section>
-
-    <button id="launchBtn" class="hud-action-btn" data-i18n="spaghettiBtn">
-      🚀 發射探測器 (意粉化測試)
-    </button>
   </aside>
 
-  <!-- 模組化載入所有 JS 檔案 -->
+  <!-- Three.js 核心與後處理管線 (CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/postprocessing/EffectComposer.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/postprocessing/RenderPass.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/postprocessing/ShaderPass.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/shaders/CopyShader.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/shaders/LuminosityHighPassShader.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/postprocessing/UnrealBloomPass.js"></script>
+
+  <!-- J.A.R. 模組化業務引擎 -->
   <script src="js/i18n.js"></script>
   <script src="js/physics.js"></script>
+  <script src="js/audio.js"></script>
   <script src="js/shaders.js"></script>
-  <script src="js/probe.js"></script>
   <script src="js/scene.js"></script>
   <script src="js/particles.js"></script>
+  <script src="js/probe.js"></script>
   <script src="js/main.js"></script>
 
+  <!-- PWA Service Worker 註冊 -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('✅ PWA Service Worker 已就緒:', reg.scope))
+          .catch(err => console.warn('PWA 註冊失敗:', err));
       });
     }
   </script>
