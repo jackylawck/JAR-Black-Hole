@@ -182,7 +182,39 @@ p {
 }
 
 /* ============================================================
-   5. 控制項與數值跳動 (Flash 動畫)
+   5. 任務 HUD (Objective Card)
+   ============================================================ */
+.mission-hud {
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  background: rgba(124, 58, 237, 0.15);
+  border: 1px solid rgba(167, 139, 250, 0.4);
+  border-radius: 8px;
+  font-size: 0.72rem;
+  position: relative;
+  z-index: 2;
+  backdrop-filter: blur(8px);
+}
+
+.mission-badge {
+  background: #7c3aed;
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-right: 6px;
+  letter-spacing: 0.8px;
+  display: inline-block;
+}
+
+.mission-text {
+  color: #e2e8f0;
+  display: inline;
+}
+
+/* ============================================================
+   6. 控制項與數值跳動 (Flash 動畫)
    ============================================================ */
 .control-group {
   margin-bottom: 12px;
@@ -249,7 +281,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 /* ============================================================
-   6. 物理卡片與瞬態能量脈衝 (Data Pulse Burst)
+   7. 物理卡片與瞬態能量脈衝 (Data Pulse Burst)
    ============================================================ */
 .physics-card {
   margin-top: 14px;
@@ -327,7 +359,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 /* ============================================================
-   7. 0.05s 機械清脆感脈衝發射按鈕
+   8. 0.05s 機械清脆感脈衝發射按鈕
    ============================================================ */
 #launchBtn {
   margin-top: 14px;
@@ -376,7 +408,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 /* ============================================================
-   8. 行動端拇指友好優化
+   9. 行動端拇指友好優化
    ============================================================ */
 @media (max-width: 480px) {
   #ui-panel {
