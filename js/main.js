@@ -1,4 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const uiPanel = document.getElementById('ui-panel');
+  if (uiPanel) {
+    uiPanel.style.opacity = '0';
+    uiPanel.style.transition = 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+  }
+
   // 1. 安全初始化各模組
   try {
     if (typeof window.I18N !== 'undefined' && window.I18N.init) window.I18N.init();
@@ -19,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.error('模組初始化異常:', err);
   }
 
-  // 首次點擊解鎖音訊
+  // 解鎖音訊 (首次使用者互動)
   const unlockAudio = () => {
     if (typeof window.AudioManager !== 'undefined') {
       if (!window.AudioManager.isInitialized) {
@@ -32,54 +38,69 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('click', unlockAudio, { once: true });
   window.addEventListener('touchstart', unlockAudio, { once: true });
 
-  // 🌟 2. 抽屜展開 / 捲起邏輯
-  const uiDrawer = document.getElementById('ui-drawer');
-  const toggleDrawerBtn = document.getElementById('toggleDrawerBtn');
-  const drawerToggleText = document.getElementById('drawerToggleText');
-  const drawerToggleIcon = document.getElementById('drawerToggleIcon');
+  requestAnimationFrame(() => {
+    if (uiPanel) uiPanel.style.opacity = '1';
+  });
 
-  function toggleDrawer() {
-    if (!uiDrawer) return;
-    const isClosed = uiDrawer.classList.contains('drawer-closed');
-    if (isClosed) {
-      uiDrawer.classList.remove('drawer-closed');
-      if (drawerToggleText) drawerToggleText.textContent = window.I18N?.currentLang === 'en' ? 'Hide Controls' : '收起控制台';
-      if (drawerToggleIcon) drawerToggleIcon.textContent = '✖';
-    } else {
-      uiDrawer.classList.add('drawer-closed');
-      if (drawerToggleText) drawerToggleText.textContent = window.I18N?.currentLang === 'en' ? 'Show Controls' : '展開控制台';
-      if (drawerToggleIcon) drawerToggleIcon.textContent = '⚙️';
-    }
-    if (typeof window.AudioManager !== 'undefined') window.AudioManager.playUITick?.();
-  }
-
-  toggleDrawerBtn?.addEventListener('click', toggleDrawer);
-
-  // 🌟 觸控/拖曳畫布旋轉黑洞時，自動捲起收起抽屜
-  const canvasContainer = document.getElementById('canvas-container');
-  if (canvasContainer && uiDrawer) {
-    canvasContainer.addEventListener('pointerdown', () => {
-      if (!uiDrawer.classList.contains('drawer-closed')) {
-        uiDrawer.classList.add('drawer-closed');
-        if (drawerToggleText) drawerToggleText.textContent = window.I18N?.currentLang === 'en' ? 'Show Controls' : '展開控制台';
-        if (drawerToggleIcon) drawerToggleIcon.textContent = '⚙️';
-      }
-    });
-  }
-
-  // 3. 狀態管理
+  // 2. 狀態管理
   let speedFactor = 1.0;
   let massScale = 1.0;
+  let lastMass = 2.5;
+  let lastIsco = 15.0;
+  let lastPhoton = 7.5;
+  let lastDoppler = 1.42;
+  let lastRedshift = 1.28;
+
   const clock = typeof THREE !== 'undefined' ? new THREE.Clock() : { getDelta: () => 0.016, getElapsedTime: () => performance.now() * 0.001 };
 
-  function triggerFlash(el) {
+  // 🌟 獨立平滑數值緩動動畫管線 (Cubic Easing)
+  function animateValue(el, start, end, suffix, decimals = 1, duration = 280) {
     if (!el) return;
-    el.classList.remove('flash');
-    void el.offsetWidth;
-    el.classList.add('flash');
+    const startTime = performance.now();
+    const range = end - start;
+
+    function step(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1.0);
+      const eased = 1.0 - Math.pow(1.0 - progress, 3);
+      const currentVal = (start + range * eased).toFixed(decimals);
+      
+      el.innerHTML = `${currentVal} <small>${suffix}</small>`;
+      if (progress < 1.0) {
+        requestAnimationFrame(step);
+      }
+    }
+    requestAnimationFrame(step);
   }
 
-  // 4. 雙模式切換
+  // 🌟 度規曲率狀態機更新 (STABLE -> WARNING -> CRITICAL) 與音訊聯動
+  function updateCurvatureState(mass) {
+    const horizonBadge = document.getElementById('horizonState');
+    if (!horizonBadge) return;
+
+    horizonBadge.classList.remove('status-stable', 'status-warning', 'status-critical');
+
+    let state = 'STABLE';
+    if (mass < 3.0) {
+      horizonBadge.textContent = 'STABLE';
+      horizonBadge.classList.add('status-stable');
+      state = 'STABLE';
+    } else if (mass < 4.5) {
+      horizonBadge.textContent = 'WARNING';
+      horizonBadge.classList.add('status-warning');
+      state = 'WARNING';
+    } else {
+      horizonBadge.textContent = 'CRITICAL';
+      horizonBadge.classList.add('status-critical');
+      state = 'CRITICAL';
+    }
+
+    if (typeof window.AudioManager !== 'undefined') {
+      window.AudioManager.updateCurvatureAudio(state, massScale, speedFactor);
+    }
+  }
+
+  // 3. 雙模式切換
   const modeBasicBtn = document.getElementById('mode-basic');
   const modeProBtn = document.getElementById('mode-pro');
 
@@ -103,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
   modeBasicBtn?.addEventListener('click', () => switchMode('basic'));
   modeProBtn?.addEventListener('click', () => switchMode('pro'));
 
-  // 5. 語言切換
+  // 4. 語言切換
   const btnZh = document.getElementById('btn-zh');
   const btnEn = document.getElementById('btn-en');
   btnZh?.addEventListener('click', () => {
@@ -117,13 +138,13 @@ document.addEventListener('DOMContentLoaded', () => {
     window.I18N?.setLang('en');
   });
 
-  // 6. 滑塊綁定
+  // 5. 滑塊互動綁定與全指標獨立滾動
   const speedRange = document.getElementById('speedRange');
   const speedVal = document.getElementById('speedVal');
   speedRange?.addEventListener('input', (e) => {
     speedFactor = parseFloat(e.target.value);
     if (speedVal) speedVal.textContent = speedFactor.toFixed(1) + ' c';
-    triggerFlash(speedVal);
+    triggerMetricUpdate();
   });
 
   const massRange = document.getElementById('massRange');
@@ -132,22 +153,38 @@ document.addEventListener('DOMContentLoaded', () => {
   const iscoVal = document.getElementById('iscoVal');
   const photonVal = document.getElementById('photonVal');
 
-  massRange?.addEventListener('input', (e) => {
-    const rawMass = parseFloat(e.target.value);
+  function triggerMetricUpdate() {
+    const rawMass = parseFloat(massRange ? massRange.value : 2.5);
     massScale = rawMass / 2.5;
 
-    if (massVal) massVal.textContent = rawMass.toFixed(1) + ' M☉';
-    if (massValDisplay) massValDisplay.innerHTML = `${rawMass.toFixed(1)} <small>M☉</small>`;
-    if (iscoVal) iscoVal.innerHTML = `${(rawMass * 6.0).toFixed(1)} <small>Rs</small>`;
-    if (photonVal) photonVal.innerHTML = `${(rawMass * 3.0).toFixed(1)} <small>Rs</small>`;
+    const newIsco = rawMass * 6.0;
+    const newPhoton = rawMass * 3.0;
+    const newDoppler = 1.0 + (speedFactor / 3.0) * 0.42;
+    const newRedshift = 1.0 / Math.sqrt(Math.max(0.1, 1.0 - (2.0 * massScale) / 12.0));
 
-    triggerFlash(massVal);
+    animateValue(massValDisplay, lastMass, rawMass, 'M☉', 1);
+    animateValue(iscoVal, lastIsco, newIsco, 'Rs', 1);
+    animateValue(photonVal, lastPhoton, newPhoton, 'Rs', 1);
+    animateValue(document.getElementById('telemetryDoppler'), lastDoppler, newDoppler, 'δ', 2);
+    animateValue(document.getElementById('telemetryRedshift'), lastRedshift, newRedshift, '1+z', 2);
+
+    lastMass = rawMass;
+    lastIsco = newIsco;
+    lastPhoton = newPhoton;
+    lastDoppler = newDoppler;
+    lastRedshift = newRedshift;
+
+    if (massVal) massVal.textContent = rawMass.toFixed(1) + ' M☉';
+    updateCurvatureState(rawMass);
+
     if (typeof window.SceneManager !== 'undefined') {
       window.SceneManager.updateBlackHoleScale(massScale);
     }
-  });
+  }
 
-  // 7. 演化時間軸控制器
+  massRange?.addEventListener('input', triggerMetricUpdate);
+
+  // 6. 演化時間軸控制器
   const evoSlider = document.getElementById('evolutionSlider');
   evoSlider?.addEventListener('input', (e) => {
     if (typeof window.EvolutionManager !== 'undefined') {
@@ -185,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 8. 發射探測器
+  // 7. 發射探測器
   const launchBtn = document.getElementById('launchBtn');
   launchBtn?.addEventListener('click', () => {
     if (typeof window.ProbeManager !== 'undefined') {
@@ -196,23 +233,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 9. 科研模式遙測
-  function updateProTelemetry() {
+  // 8. ⚛️ 科研模式：動態滾動測地線張量日誌
+  let logTimer = 0;
+  function updateProTerminalStream(delta) {
     if (window.I18N?.currentMode !== 'pro') return;
-    const dopplerEl = document.getElementById('telemetryDoppler');
-    const redshiftEl = document.getElementById('telemetryRedshift');
 
-    if (dopplerEl) {
-      const delta = (1.0 + (speedFactor / 3.0) * 0.42).toFixed(3);
-      dopplerEl.textContent = delta;
-    }
-    if (redshiftEl) {
-      const z = (1.0 / Math.sqrt(Math.max(0.1, 1.0 - (2.0 * massScale) / 12.0))).toFixed(3);
-      redshiftEl.textContent = z;
+    logTimer += delta;
+    if (logTimer >= 0.6) {
+      logTimer = 0;
+      const logContainer = document.getElementById('proTerminalLog');
+      if (!logContainer) return;
+
+      const g00 = (-(1.0 - (2.0 * massScale) / 10.0)).toFixed(4);
+      const christoffel = (0.012 * massScale * Math.random()).toFixed(5);
+      const timeStamp = (performance.now() * 0.001).toFixed(2);
+
+      const logTemplates = [
+        `[${timeStamp}s] GEODESIC RK4: g_00=${g00} | Γ^r_tt=${christoffel}`,
+        `[${timeStamp}s] FLUX DENSITY: ${ (1420 * massScale).toFixed(0) } Jy | POLARIZATION: ${(speedFactor * 33.2).toFixed(1)}%`,
+        `[${timeStamp}s] FRAME-DRAGGING: ω=${(speedFactor * 0.12).toFixed(4)} rad/s | r_+=${(2 * massScale).toFixed(2)}Rs`
+      ];
+
+      const newLine = document.createElement('div');
+      newLine.className = 'pro-stream-line';
+      newLine.textContent = `>> ` + logTemplates[Math.floor(Math.random() * logTemplates.length)];
+
+      logContainer.insertBefore(newLine, logContainer.firstChild);
+      while (logContainer.children.length > 3) {
+        logContainer.removeChild(logContainer.lastChild);
+      }
     }
   }
 
-  // 10. 動畫主迴圈
+  // 9. 動畫主迴圈
   function animate() {
     requestAnimationFrame(animate);
 
@@ -230,14 +283,19 @@ document.addEventListener('DOMContentLoaded', () => {
     try { window.ParticleManager?.update(delta, speedFactor, massScale); } catch (e) {}
     try { window.ProbeManager?.update(massScale); } catch (e) {}
     try { window.EvolutionManager?.update(delta, elapsedTime); } catch (e) {}
-    try { window.AudioManager?.updateListenerAndParams(window.SceneManager?.camera, massScale, speedFactor); } catch (e) {}
+    try {
+      window.AudioManager?.updateListenerAndParams(window.SceneManager?.camera, massScale, speedFactor);
+      window.AudioManager?.applyAnalogJitter(elapsedTime);
+    } catch (e) {}
 
-    updateProTelemetry();
+    updateProTerminalStream(delta);
 
-    if (window.SceneManager?.composer) {
-      window.SceneManager.composer.render();
+    // 雙重視口渲染（主座艙視角 + 探測器 POV PiP）
+    if (window.SceneManager?.renderDualViewport) {
+      window.SceneManager.renderDualViewport();
     }
   }
 
+  updateCurvatureState(2.5);
   animate();
 });
