@@ -19,7 +19,9 @@ body {
 #canvas-container {
   width: 100vw;
   height: 100vh;
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
   z-index: 1;
 }
 
@@ -42,16 +44,16 @@ body {
    ============================================================ */
 .probe-pip-deck {
   position: fixed;
-  top: 14px;
-  right: 14px;
-  width: min(220px, 35vw);
-  height: calc(min(220px, 35vw) * 0.72);
-  z-index: 30;
+  top: 70px;
+  right: 12px;
+  width: min(200px, 34vw);
+  height: calc(min(200px, 34vw) * 0.72);
+  z-index: 25;
   border: 1px solid rgba(56, 189, 248, 0.45);
   background: rgba(2, 6, 23, 0.55);
   backdrop-filter: blur(10px);
   border-radius: 8px;
-  padding: 5px 8px;
+  padding: 4px 6px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -59,7 +61,7 @@ body {
   opacity: 0;
   transform: scale(0.9) translateY(-10px);
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 0 25px rgba(56, 189, 248, 0.2), inset 0 0 15px rgba(56, 189, 248, 0.1);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
   overflow: hidden;
 }
 
@@ -81,7 +83,7 @@ body {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  width: 24px; height: 24px;
+  width: 20px; height: 20px;
   border: 1px solid rgba(56, 189, 248, 0.35);
   border-radius: 50%;
   pointer-events: none;
@@ -91,8 +93,8 @@ body {
 .pip-crosshair::before, .pip-crosshair::after {
   content: ""; position: absolute; background: rgba(56, 189, 248, 0.6);
 }
-.pip-crosshair::before { top: -4px; bottom: -4px; left: 50%; width: 1px; transform: translateX(-50%); }
-.pip-crosshair::after { left: -4px; right: -4px; top: 50%; height: 1px; transform: translateY(-50%); }
+.pip-crosshair::before { top: -3px; bottom: -3px; left: 50%; width: 1px; transform: translateX(-50%); }
+.pip-crosshair::after { left: -3px; right: -3px; top: 50%; height: 1px; transform: translateY(-50%); }
 
 .pip-chassis-overlay {
   position: absolute;
@@ -102,7 +104,7 @@ body {
 }
 
 .pip-antenna-left, .pip-antenna-right {
-  position: absolute; bottom: 0; width: 2px; height: 20px;
+  position: absolute; bottom: 0; width: 2px; height: 16px;
   background: linear-gradient(180deg, #38bdf8 0%, rgba(56, 189, 248, 0.1) 100%);
   box-shadow: 0 0 6px #38bdf8;
 }
@@ -110,7 +112,7 @@ body {
 .pip-antenna-right { right: 16%; transform: rotate(-15deg); }
 
 .pip-wing-left, .pip-wing-right {
-  position: absolute; bottom: -4px; width: 28px; height: 10px;
+  position: absolute; bottom: -3px; width: 24px; height: 8px;
   background: rgba(8, 15, 38, 0.8);
   border: 1px solid rgba(56, 189, 248, 0.4);
 }
@@ -122,119 +124,64 @@ body {
 }
 .pip-title-wrap { display: flex; align-items: center; gap: 4px; }
 .pip-live-dot {
-  width: 5px; height: 5px; border-radius: 50%; background: #f43f5e; box-shadow: 0 0 8px #f43f5e; animation: pulseDot 0.8s infinite;
+  width: 4px; height: 4px; border-radius: 50%; background: #f43f5e; box-shadow: 0 0 6px #f43f5e; animation: pulseDot 0.8s infinite;
 }
-.pip-title { font-family: 'SF Mono', monospace; font-size: 0.5rem; font-weight: 800; color: #38bdf8; }
+.pip-title { font-family: 'SF Mono', monospace; font-size: 0.46rem; font-weight: 800; color: #38bdf8; }
 .pip-status-tag {
-  font-family: 'SF Mono', monospace; font-size: 0.44rem; color: #fbbf24;
-  background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.3); padding: 1px 4px; border-radius: 3px;
+  font-family: 'SF Mono', monospace; font-size: 0.42rem; color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.3); padding: 1px 3px; border-radius: 3px;
 }
 
 .pip-dashboard-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 2px 4px;
-  font-family: 'SF Mono', monospace; font-size: 0.44rem; color: #94a3b8;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1px 3px;
+  font-family: 'SF Mono', monospace; font-size: 0.42rem; color: #94a3b8;
   z-index: 3; background: rgba(2, 6, 23, 0.7); padding: 2px 4px; border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 .pip-metric-item { display: flex; justify-content: space-between; }
 .pip-metric-item .val { color: #f8fafc; font-weight: 700; }
 .pip-metric-item .val-hot { color: #f43f5e; text-shadow: 0 0 6px rgba(244, 63, 94, 0.6); }
 
 /* ============================================================
-   2. 3A 緊湊型座艙 HUD
+   2. 頂部常駐：實時物理遙測看板 (Top Telemetry Bar)
    ============================================================ */
-.hud-cockpit {
+.top-hud-bar {
   position: fixed;
-  bottom: 8px;
+  top: env(safe-area-inset-top, 8px);
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
-  width: min(780px, 94vw);
+  width: min(920px, 96vw);
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  background: linear-gradient(180deg, rgba(8, 15, 38, 0.82) 0%, rgba(4, 8, 20, 0.95) 100%);
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
-  border: 1px solid rgba(56, 189, 248, 0.25);
-  border-top: 1px solid rgba(125, 211, 252, 0.45);
+  gap: 4px;
+  background: rgba(6, 12, 30, 0.78);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(56, 189, 248, 0.2);
   border-radius: 12px;
-  padding: 6px 12px 6px;
-  box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.8), 0 0 20px rgba(56, 189, 248, 0.06);
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease;
+  padding: 6px 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
 }
 
-.hud-cockpit::before {
-  content: " ";
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0.015) 1px, transparent 1px, transparent 2px);
-  pointer-events: none;
-  border-radius: inherit;
-}
-
-/* 智能捲起：只留數據 */
-.hud-cockpit.hud-collapsed {
-  background: rgba(4, 8, 20, 0.85);
-  gap: 3px;
-  padding-bottom: 4px;
-}
-
-.hud-cockpit.hud-collapsed .collapsible-section {
-  display: none !important;
-}
-
-/* ============================================================
-   3. 捲起拉手條
-   ============================================================ */
-.cockpit-toggle-bar {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-  padding: 1px 0 2px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.toggle-pill {
-  width: 28px;
-  height: 3px;
-  background: rgba(56, 189, 248, 0.4);
-  border-radius: 2px;
-  margin-bottom: 1px;
-}
-
-.toggle-text {
-  font-size: 0.48rem;
-  font-family: 'SF Mono', monospace;
-  font-weight: 700;
-  color: #94a3b8;
-}
-
-/* ============================================================
-   4. 頂部狀態列
-   ============================================================ */
-.hud-status-strip {
+.top-nav-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 3px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  gap: 8px;
 }
 
-.status-module { display: flex; align-items: center; gap: 8px; }
-.beacon-pulse { display: flex; align-items: center; gap: 4px; }
-.pulse-dot {
-  width: 5px; height: 5px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 6px #38bdf8; animation: pulseDot 2s infinite ease-in-out;
+.sys-status { display: flex; align-items: center; gap: 5px; }
+.status-dot {
+  width: 5px; height: 5px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 8px #38bdf8; animation: pulseDot 2s infinite ease-in-out;
 }
 @keyframes pulseDot { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 
-.beacon-label {
+.status-text {
   font-size: 0.48rem; font-weight: 800; letter-spacing: 1px; color: #64748b; font-family: 'SF Mono', monospace;
 }
 
-.mode-cluster {
-  display: flex; background: rgba(0, 0, 0, 0.5); border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.08); padding: 1px;
+.mode-switcher {
+  display: flex; background: rgba(0, 0, 0, 0.4); border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.08); padding: 1px;
 }
 .mode-btn {
   background: transparent; border: none; color: #64748b; font-size: 0.5rem; font-weight: 700; padding: 2px 7px; border-radius: 3px; cursor: pointer;
@@ -243,132 +190,134 @@ body {
   background: linear-gradient(135deg, #0284c7, #7c3aed); color: #fff; box-shadow: 0 0 8px rgba(56, 189, 248, 0.35);
 }
 
-.lang-cluster { display: flex; gap: 2px; }
+.top-mission-pill {
+  font-size: 0.52rem; color: #94a3b8; font-family: 'SF Mono', monospace;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%;
+}
+.top-mission-pill .highlight { color: #fbbf24; font-weight: 700; }
+
+.lang-switcher { display: flex; gap: 2px; }
 .lang-btn {
   background: transparent; border: 1px solid rgba(255, 255, 255, 0.08); color: #64748b; font-size: 0.48rem; font-weight: 600; padding: 1px 4px; border-radius: 3px; cursor: pointer;
 }
 .lang-btn.active { border-color: #38bdf8; color: #f8fafc; }
 
-.objective-banner { font-size: 0.5rem; color: #94a3b8; font-family: 'SF Mono', monospace; }
-.objective-banner .glow-amber { color: #fbbf24; font-weight: 700; }
-
-/* ============================================================
-   5. 核心數據甲板
-   ============================================================ */
-.telemetry-deck {
+/* 頂部實時數據膠囊看板 */
+.top-telemetry-capsules {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr 0.8fr 0.8fr;
-  gap: 5px;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  align-items: center;
+  padding-top: 3px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.telemetry-card {
-  background: rgba(15, 23, 42, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 5px;
-  padding: 3px 5px;
-  text-align: center;
-}
-
-.telemetry-card.primary-reactor {
-  background: radial-gradient(circle at center, rgba(56, 189, 248, 0.12) 0%, rgba(15, 23, 42, 0.65) 100%);
-  border: 1px solid rgba(56, 189, 248, 0.35);
-}
-
-.telemetry-card .deck-tag {
-  font-size: 0.44rem; color: #64748b; text-transform: uppercase; font-family: 'SF Mono', monospace; font-weight: 700;
-}
-.telemetry-card.primary-reactor .deck-tag { color: #38bdf8; }
-
-.telemetry-card .deck-val { font-family: 'SF Mono', monospace; font-size: 0.95rem; font-weight: 800; }
-.telemetry-card.primary-reactor .deck-val { font-size: 1.2rem; color: #f8fafc; }
-.telemetry-card .deck-val small { font-size: 0.48rem; opacity: 0.6; }
-
-.val-cyan { color: #38bdf8; text-shadow: 0 0 8px rgba(56, 189, 248, 0.4); }
-.val-purple { color: #c084fc; text-shadow: 0 0 8px rgba(192, 132, 252, 0.4); }
-.val-amber { color: #fbbf24; text-shadow: 0 0 8px rgba(251, 191, 36, 0.4); }
-
-.telemetry-card.sub-tier { background: rgba(6, 12, 30, 0.4); }
-.telemetry-card.sub-tier .deck-val { font-size: 0.8rem; }
-
-/* ============================================================
-   6. ⚛️ 科研模式專屬：動態滾動測地線串流日誌
-   ============================================================ */
-.pro-terminal-stream-box {
-  display: none;
-  background: #020806;
-  border: 1px solid rgba(16, 185, 129, 0.28);
+.telemetry-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 6px;
-  padding: 4px 8px;
-  font-family: 'SF Mono', 'Courier New', monospace;
-  font-size: 0.5rem;
-  color: #10b981;
-  max-height: 40px;
-  overflow: hidden;
-  margin-top: 2px;
+  padding: 2px 4px;
 }
 
-body.mode-pro .pro-terminal-stream-box {
-  display: block;
+.pill-label {
+  font-size: 0.42rem; color: #64748b; text-transform: uppercase; font-family: 'SF Mono', monospace; font-weight: 700;
 }
 
-.pro-stream-line {
-  white-space: nowrap;
-  line-height: 1.35;
-  opacity: 0.85;
-  transition: opacity 0.2s ease;
-}
+.pill-val { font-family: 'SF Mono', monospace; font-size: 0.88rem; font-weight: 800; line-height: 1.1; }
+.pill-val small { font-size: 0.48rem; opacity: 0.6; }
 
-.pro-stream-line:first-child {
-  opacity: 1;
-  color: #34d399;
-  font-weight: 700;
-}
+.val-white { color: #f8fafc; }
+.val-cyan { color: #38bdf8; text-shadow: 0 0 6px rgba(56, 189, 248, 0.4); }
+.val-purple { color: #c084fc; text-shadow: 0 0 6px rgba(192, 132, 252, 0.4); }
+.val-amber { color: #fbbf24; text-shadow: 0 0 6px rgba(251, 191, 36, 0.4); }
 
-/* ============================================================
-   7. 恆星演化史詩控制器
-   ============================================================ */
-.evolution-deck {
-  padding: 4px 8px;
-  background: rgba(15, 23, 42, 0.45);
-  border: 1px solid rgba(168, 85, 247, 0.2);
-  border-radius: 5px;
-}
-.evo-hud-bar { display: flex; justify-content: space-between; margin-bottom: 1px; }
-.evo-hud-title { font-size: 0.5rem; font-weight: 800; color: #c084fc; }
-.evo-hud-badge { font-size: 0.48rem; color: #38bdf8; font-family: 'SF Mono', monospace; }
-.evo-hud-desc { font-size: 0.46rem; color: #94a3b8; line-height: 1.15; min-height: 1.2em; margin-bottom: 2px; }
-#evolutionSlider { width: 100%; height: 2px; background: linear-gradient(90deg, #38bdf8, #ea580c, #f43f5e, #a855f7); }
-.evo-deck-controls { display: flex; gap: 4px; margin-top: 2px; }
-.evo-deck-controls button {
-  flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); color: #cbd5e1; font-size: 0.48rem; font-weight: 700; padding: 2px 4px; border-radius: 3px; cursor: pointer;
-}
-
-/* ============================================================
-   8. 底部指令區與狀態機
-   ============================================================ */
-.command-deck {
-  display: grid; grid-template-columns: 1fr 1fr 0.8fr 1.2fr; gap: 6px; align-items: end;
-}
-.slider-meta { display: flex; justify-content: space-between; margin-bottom: 1px; }
-.slider-meta label { font-size: 0.48rem; color: #94a3b8; font-weight: 700; }
-.slider-meta .val-chip {
+.val-chip {
   font-family: 'SF Mono', monospace; font-size: 0.48rem; font-weight: 800; padding: 0 4px; border-radius: 3px;
-  border: 1px solid transparent;
 }
 .val-chip.status-stable { color: #38bdf8; background: rgba(56, 189, 248, 0.1); }
 .val-chip.status-warning { color: #fbbf24; background: rgba(251, 191, 36, 0.12); }
 .val-chip.status-critical { color: #f43f5e; background: rgba(244, 63, 94, 0.15); animation: criticalFlash 0.5s infinite alternate; }
 @keyframes criticalFlash { 0% { opacity: 0.7; } 100% { opacity: 1; filter: brightness(1.5); } }
 
-input[type="range"] { -webkit-appearance: none; width: 100%; height: 2px; background: rgba(255, 255, 255, 0.08); outline: none; }
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%; background: #38bdf8; cursor: pointer;
-  margin-top: -4px;
+/* ============================================================
+   3. 底部超窄常駐：操控與發射指令欄 (Bottom Command Bar)
+   ============================================================ */
+.bottom-hud-bar {
+  position: fixed;
+  bottom: env(safe-area-inset-bottom, 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  width: min(840px, 96vw);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(6, 12, 30, 0.82);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 12px;
+  padding: 6px 12px;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.8);
 }
 
-#launchBtn {
-  position: relative; width: 100%; padding: 6px 8px; background: linear-gradient(135deg, #0284c7, #7c3aed);
-  border: 1px solid rgba(125, 211, 252, 0.4); border-radius: 5px; color: #ffffff; font-size: 0.62rem; font-weight: 800; cursor: pointer; overflow: hidden; white-space: nowrap;
+.bottom-evolution-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.evo-mini-meta {
+  display: flex; align-items: center; gap: 4px; font-size: 0.5rem; font-family: 'SF Mono', monospace;
+}
+.evo-mini-title { color: #c084fc; font-weight: 700; }
+.evo-mini-badge { color: #38bdf8; }
+
+.evo-mini-actions {
+  display: flex; align-items: center; gap: 4px; flex: 1; max-width: 55%;
+}
+
+.evo-btn {
+  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); color: #cbd5e1;
+  font-size: 0.46rem; font-weight: 700; padding: 2px 6px; border-radius: 3px; cursor: pointer; white-space: nowrap;
+}
+.evo-btn.play-btn { background: rgba(56, 189, 248, 0.15); border-color: #38bdf8; color: #38bdf8; }
+
+#evolutionSlider {
+  flex: 1; height: 2px; background: linear-gradient(90deg, #38bdf8, #ea580c, #f43f5e, #a855f7);
+  outline: none;
+}
+
+.bottom-controls-strip {
+  display: grid;
+  grid-template-columns: 1.2fr 1.2fr 1.5fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.mini-slider-box { display: flex; flex-direction: column; gap: 1px; }
+.slider-info { display: flex; justify-content: space-between; align-items: center; }
+.slider-info label { font-size: 0.48rem; color: #94a3b8; font-weight: 700; }
+.slider-badge {
+  font-family: 'SF Mono', monospace; font-size: 0.48rem; font-weight: 800; color: #38bdf8;
+}
+
+input[type="range"] {
+  -webkit-appearance: none; width: 100%; height: 2px; background: rgba(255, 255, 255, 0.08); outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%; background: #38bdf8; cursor: pointer; margin-top: -4px;
+}
+
+.bottom-launch-action {
+  position: relative; width: 100%; padding: 6px 10px; background: linear-gradient(135deg, #0284c7, #7c3aed);
+  border: 1px solid rgba(125, 211, 252, 0.4); border-radius: 6px; color: #ffffff; font-size: 0.64rem; font-weight: 800; cursor: pointer; overflow: hidden; white-space: nowrap;
 }
 
 .btn-glow {
@@ -378,27 +327,49 @@ input[type="range"]::-webkit-slider-thumb {
 @keyframes pulseGlow { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.8; } }
 
 /* ============================================================
-   📱 9. 響應式優化
+   📱 4. 橫屏專屬：左右兩翼佈局 (Landscape Side Wings)
    ============================================================ */
 @media (orientation: landscape) and (max-height: 520px) {
-  .hud-cockpit {
-    bottom: 2px;
+  .top-hud-bar {
+    top: 6px;
     width: 96vw;
     padding: 3px 8px;
     gap: 2px;
   }
-  .telemetry-deck { grid-template-columns: repeat(5, 1fr); gap: 3px; }
-  .telemetry-card .deck-val { font-size: 0.8rem; }
-  .telemetry-card.primary-reactor .deck-val { font-size: 0.95rem; }
-  .command-deck { grid-template-columns: 1fr 1fr 0.8fr 1fr; gap: 4px; }
-  #launchBtn { padding: 3px 6px; font-size: 0.54rem; }
-  .evo-hud-desc { display: none; }
+  .top-telemetry-capsules {
+    gap: 4px;
+    grid-template-columns: repeat(6, 1fr);
+  }
+  .pill-val { font-size: 0.76rem; }
+
+  .bottom-hud-bar {
+    bottom: 4px;
+    width: 96vw;
+    padding: 3px 8px;
+    gap: 2px;
+  }
+  .bottom-controls-strip {
+    grid-template-columns: 1fr 1fr 1.2fr;
+    gap: 6px;
+  }
+  .bottom-launch-action { padding: 4px 8px; font-size: 0.56rem; }
+  .evo-mini-meta { font-size: 0.46rem; }
 }
 
 @media (max-width: 640px) and (orientation: portrait) {
-  .hud-cockpit { bottom: 4px; width: 96vw; padding: 5px 8px; }
-  .telemetry-deck { grid-template-columns: 1.2fr 1fr 1fr; }
-  .telemetry-card.sub-tier { display: none; }
-  .command-deck { grid-template-columns: 1fr 1fr; }
-  #launchBtn { grid-column: span 2; padding: 7px; }
+  .top-telemetry-capsules {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
+  .top-telemetry-capsules .sub-pill { display: none; }
+  .top-mission-pill { display: none; }
+
+  .bottom-controls-strip {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .bottom-launch-action {
+    grid-column: span 2;
+    padding: 8px;
+  }
 }
