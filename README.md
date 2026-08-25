@@ -111,8 +111,6 @@ This project is open source under the MIT License.
 
 ---
 
-## ---
-
 ## ⚖️ Governance, Compliance & Research Standards
 | Dimension | Standard / Regulation | Reference Document |
 | :--- | :--- | :--- |
