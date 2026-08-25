@@ -111,8 +111,13 @@ This project is open source under the MIT License.
 
 ---
 
-## 🛡️ 法律合規與免責聲明 (Compliance & Disclaimers)
+## ---
 
-* 法律免責聲明 (DISCLAIMER.md)
-* AI 與科普教育合規評估 (COMPLIANCE.md)
-* 數據隱私保護政策 (PRIVACY.md)
+## ⚖️ Governance, Compliance & Research Standards
+| Dimension | Standard / Regulation | Reference Document |
+| :--- | :--- | :--- |
+| **Open Source** | Apache License 2.0 (Research Addendum) | [`LICENSE`](LICENSE) |
+| **Research Exemption** | Open Fundamental Research (Astrophysics Public Domain) | [`EXPORT_COMPLIANCE.md`](EXPORT_COMPLIANCE.md) |
+| **AI Governance** | Deterministic Physics / EU AI Act Exemption / ISO 42001 | [`AI_GOVERNANCE_STATEMENT.md`](AI_GOVERNANCE_STATEMENT.md) |
+| **Privacy** | Zero-PII Client-Side Architecture (GDPR / HK PDPO) | [`PRIVACY.md`](PRIVACY.md) |
+| **Physics Benchmarks** | Kerr Geodesics, ISCO & Novikov-Thorne Validation | [`BENCHMARK.md`](BENCHMARK.md) |
