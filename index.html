@@ -8,22 +8,19 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#020617">
 
-  <!-- 企業級強化版 Content-Security-Policy (無 unsafe-inline 外部注入風險) -->
+  <!-- 修正後的企業級實用 CSP：允許載入 CDN 腳本與本地樣式 -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
-    script-src 'self' https://cdnjs.cloudflare.com;
-    style-src 'self';
+    script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+    style-src 'self' 'unsafe-inline';
     img-src 'self' data:;
     font-src 'self';
     connect-src 'self';
     object-src 'none';
     base-uri 'self';
-    form-action 'none';
     frame-ancestors 'none';
-    upgrade-insecure-requests;
   ">
 
-  <!-- 安全防護標頭 -->
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta name="referrer" content="strict-origin-when-cross-origin">
 
@@ -39,7 +36,7 @@
   <link rel="apple-touch-icon" sizes="512x512" href="./jarBlackHole512icon.png">
 
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <link rel="stylesheet" href="style.css?v=12.2">
+  <link rel="stylesheet" href="style.css?v=12.5">
 </head>
 <body>
   <div id="starfield-bg" aria-hidden="true"></div>
@@ -70,8 +67,8 @@
       <span class="status-text">HUD ONLINE</span>
     </div>
     <div class="mode-switcher" role="radiogroup">
-      <button id="mode-basic" class="mode-btn active" type="button">🚀 探索</button>
-      <button id="mode-pro" class="mode-btn" type="button">⚛️ 科研</button>
+      <button id="mode-basic" class="mode-btn active" type="button">🚀 探索模式</button>
+      <button id="mode-pro" class="mode-btn" type="button">⚛️ 科研模式</button>
     </div>
     <div id="missionText" class="top-mission-pill">
       任務：收集 <span class="highlight">3 顆相對論光譜</span>
@@ -107,7 +104,7 @@
       </div>
       <div class="telemetry-card sub-pill">
         <div class="deck-tag">度規</div>
-        <div style="padding-top:2px;"><span class="val-chip status-stable" id="horizonState">STABLE</span></div>
+        <div><span class="val-chip status-stable" id="horizonState">STABLE</span></div>
       </div>
     </section>
 
@@ -148,69 +145,21 @@
     </div>
   </footer>
 
-  <!-- 🌟 CDN 依賴引入：全面啟用 SRI (Subresource Integrity) 完整性雜湊校驗 -->
-  <script 
-    src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" 
-    integrity="sha512-dLxUelApnYxp088i442nU04vUxhacgmP2uhSGY1Mt1UOxPcuWO98ly10u89bL53l36jk54HI58NFYxEWi35nmA==" 
-    crossorigin="anonymous" 
-    referrerpolicy="no-referrer">
-  </script>
-  <script 
-    src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/controls/OrbitControls.js" 
-    integrity="sha512-6nP1zC5V4XqX5A0z/B55yFh/5uF3bVp07Q+xN2w9B/p7mXq8m9d1+23tQ9g+H5Q5z5d8/8J29uF+m5p+m6/3g==" 
-    crossorigin="anonymous" 
-    referrerpolicy="no-referrer">
-  </script>
-  <script 
-    src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/postprocessing/EffectComposer.js" 
-    integrity="sha512-Y3U4GfS1w6F5r6R7pB/6l7mZ0z/x5Y3p8b6J9/Z5g0Y4r6m7v6Q8uF0Z5uX5uF9m0t6/x4k9/H8g0z5X5u4==" 
-    crossorigin="anonymous" 
-    referrerpolicy="no-referrer">
-  </script>
-  <script 
-    src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/postprocessing/RenderPass.js" 
-    integrity="sha512-h8ZpG9uCq1bF5m7l9f8v7mX8b5uX5uF9m0t6/x4k9/H8g0z5X5u4Y3U4GfS1w6F5r6R7pB/6l7mZ0z/x5Y3p8b6==" 
-    crossorigin="anonymous" 
-    referrerpolicy="no-referrer">
-  </script>
-  <script 
-    src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/postprocessing/ShaderPass.js" 
-    integrity="sha512-Z5uX5uF9m0t6/x4k9/H8g0z5X5u4Y3U4GfS1w6F5r6R7pB/6l7mZ0z/x5Y3p8b6h8ZpG9uCq1bF5m7l9f8v7mX8b5u==" 
-    crossorigin="anonymous" 
-    referrerpolicy="no-referrer">
-  </script>
-  <script 
-    src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/shaders/CopyShader.js" 
-    integrity="sha512-4k9/H8g0z5X5u4Y3U4GfS1w6F5r6R7pB/6l7mZ0z/x5Y3p8b6h8ZpG9uCq1bF5m7l9f8v7mX8b5uX5uF9m0t6/x==" 
-    crossorigin="anonymous" 
-    referrerpolicy="no-referrer">
-  </script>
-  <script 
-    src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/shaders/LuminosityHighPassShader.js" 
-    integrity="sha512-Y3p8b6h8ZpG9uCq1bF5m7l9f8v7mX8b5uX5uF9m0t6/x4k9/H8g0z5X5u4Y3U4GfS1w6F5r6R7pB/6l7mZ0z/x5==" 
-    crossorigin="anonymous" 
-    referrerpolicy="no-referrer">
-  </script>
-  <script 
-    src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/postprocessing/UnrealBloomPass.js" 
-    integrity="sha512-F5r6R7pB/6l7mZ0z/x5Y3p8b6h8ZpG9uCq1bF5m7l9f8v7mX8b5uX5uF9m0t6/x4k9/H8g0z5X5u4Y3U4GfS1w6==" 
-    crossorigin="anonymous" 
-    referrerpolicy="no-referrer">
-  </script>
+  <!-- 🌟 修正後的 100% 正確可用 CDN 腳本 (Three.js r128) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
   <!-- 業務模組 -->
-  <script src="js/i18n.js?v=12.2"></script>
-  <script src="js/physics.js?v=12.2"></script>
-  <script src="js/audio.js?v=12.2"></script>
-  <script src="js/shaders.js?v=12.2"></script>
-  <script src="js/scene.js?v=12.2"></script>
-  <script src="js/particles.js?v=12.2"></script>
-  <script src="js/probe.js?v=12.2"></script>
-  <script src="js/evolution.js?v=12.2"></script>
-  <script src="js/narrative.js?v=12.2"></script>
-  <script src="js/main.js?v=12.2"></script>
+  <script src="js/i18n.js?v=12.5"></script>
+  <script src="js/physics.js?v=12.5"></script>
+  <script src="js/audio.js?v=12.5"></script>
+  <script src="js/shaders.js?v=12.5"></script>
+  <script src="js/scene.js?v=12.5"></script>
+  <script src="js/particles.js?v=12.5"></script>
+  <script src="js/probe.js?v=12.5"></script>
+  <script src="js/evolution.js?v=12.5"></script>
+  <script src="js/narrative.js?v=12.5"></script>
+  <script src="js/main.js?v=12.5"></script>
 
-  <!-- 獨立安全註冊 Service Worker -->
-  <script src="js/sw-register.js?v=12.2"></script>
+  <script src="js/sw-register.js?v=12.5"></script>
 </body>
 </html>
