@@ -1,3 +1,9 @@
+/**
+ * J.A.R. Secure Service Worker
+ * Version: jar-black-hole-v12.2
+ */
+'use strict';
+
 const CACHE_NAME = 'jar-black-hole-v12.2';
 const ASSETS_TO_CACHE = [
   './',
@@ -16,6 +22,8 @@ const ASSETS_TO_CACHE = [
   './js/scene.js',
   './js/particles.js',
   './js/main.js',
+  './js/sw-register.js',
+  // 外部 CDN 核心庫
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/controls/OrbitControls.js',
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/postprocessing/EffectComposer.js',
@@ -33,7 +41,7 @@ self.addEventListener('install', (e) => {
         try {
           await cache.add(asset);
         } catch (err) {
-          console.warn(`[SW] 快取跳過: ${asset}`, err);
+          console.warn(`[SW-Security] Asset cache bypass: ${asset}`, err);
         }
       }
     })
@@ -47,7 +55,6 @@ self.addEventListener('activate', (e) => {
       return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
-            console.log(`[SW] 清理舊快取: ${key}`);
             return caches.delete(key);
           }
         })
@@ -58,10 +65,13 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
+  // 只攔截同源與特定受信任 CDN 來源的 GET 請求
+  if (e.request.method !== 'GET') return;
+
   e.respondWith(
     fetch(e.request)
       .then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200 && e.request.method === 'GET') {
+        if (networkResponse && networkResponse.status === 200) {
           const responseClone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(e.request, responseClone);
