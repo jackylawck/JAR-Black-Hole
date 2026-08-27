@@ -1,10 +1,4 @@
-/**
- * J.A.R. Secure Service Worker
- * Version: jar-black-hole-v12.2
- */
-'use strict';
-
-const CACHE_NAME = 'jar-black-hole-v12.2';
+const CACHE_NAME = 'jar-black-hole-v12.5';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -23,15 +17,7 @@ const ASSETS_TO_CACHE = [
   './js/particles.js',
   './js/main.js',
   './js/sw-register.js',
-  // 外部 CDN 核心庫
-  'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/controls/OrbitControls.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/postprocessing/EffectComposer.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/postprocessing/RenderPass.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/postprocessing/ShaderPass.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/shaders/CopyShader.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/shaders/LuminosityHighPassShader.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/postprocessing/UnrealBloomPass.js'
+  'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
 ];
 
 self.addEventListener('install', (e) => {
@@ -41,7 +27,7 @@ self.addEventListener('install', (e) => {
         try {
           await cache.add(asset);
         } catch (err) {
-          console.warn(`[SW-Security] Asset cache bypass: ${asset}`, err);
+          console.warn(`[SW] Asset cache bypass: ${asset}`, err);
         }
       }
     })
@@ -65,7 +51,6 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  // 只攔截同源與特定受信任 CDN 來源的 GET 請求
   if (e.request.method !== 'GET') return;
 
   e.respondWith(
