@@ -2,21 +2,23 @@ window.SceneManager = {
   scene: null,
   camera: null,
   renderer: null,
-  composer: null,
-  bloomPass: null,
-  controls: null,
   blackHoleSphere: null,
   photonRing: null,
   lensingRingTop: null,
   currentMass: 2.5,
 
-  // 🌟 原生球坐標旋轉狀態機 (保證 100% 任何裝置流暢 360 度旋轉)
-  cameraRadius: 16.0,
-  cameraTheta: 0.0,      // 水平角
-  cameraPhi: Math.PI / 2 - 0.2, // 俯仰角 (微俯視)
-  targetY: 1.2,          // 視線焦點抬高，黑洞置中
+  // 🌟 原生球坐標旋轉狀態機 (不依賴任何外部 OrbitControls，保證 100% 可動)
+  cameraRadius: 15.0,
+  cameraTheta: 0.0,
+  cameraPhi: Math.PI / 2 - 0.2,
+  targetY: 1.5,
 
   init() {
+    if (typeof THREE === 'undefined') {
+      console.error('[SceneManager] THREE is not loaded!');
+      return;
+    }
+
     const container = document.getElementById('canvas-container') || document.body;
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -25,7 +27,7 @@ window.SceneManager = {
     this.scene = new THREE.Scene();
 
     this.cameraRadius = isPortrait ? 15.0 : 12.0;
-    this.targetY = isPortrait ? 1.6 : 0.8;
+    this.targetY = isPortrait ? 1.5 : 0.8;
     this.camera = new THREE.PerspectiveCamera(isPortrait ? 60 : 42, width / height, 0.1, 2000);
     this.updateCameraTransform();
 
@@ -43,7 +45,7 @@ window.SceneManager = {
     container.innerHTML = '';
     container.appendChild(this.renderer.domElement);
 
-    // 🌟 核心：原生 Touch & Pointer 360 度無死角滑動事件
+    // 🌟 初始化全域原生 Touch / Mouse 360 度手勢
     this.initNativeGestures();
 
     // 1. 黑洞事件視界
@@ -93,30 +95,11 @@ window.SceneManager = {
     );
     this.scene.add(starMesh);
 
-    // 5. 後處理泛光
-    try {
-      if (typeof THREE.EffectComposer !== 'undefined' && typeof THREE.UnrealBloomPass !== 'undefined') {
-        const renderScene = new THREE.RenderPass(this.scene, this.camera);
-        this.bloomPass = new THREE.UnrealBloomPass(
-          new THREE.Vector2(width, height),
-          1.1,
-          0.4,
-          0.18
-        );
-        this.composer = new THREE.EffectComposer(this.renderer);
-        this.composer.addPass(renderScene);
-        this.composer.addPass(this.bloomPass);
-      } else {
-        throw new Error('Fallback');
-      }
-    } catch (e) {
-      this.composer = null;
-    }
-
     window.addEventListener('resize', () => this.onWindowResize());
   },
 
   updateCameraTransform() {
+    if (!this.camera) return;
     const x = this.cameraRadius * Math.sin(this.cameraPhi) * Math.sin(this.cameraTheta);
     const y = this.targetY + this.cameraRadius * Math.cos(this.cameraPhi);
     const z = this.cameraRadius * Math.sin(this.cameraPhi) * Math.cos(this.cameraTheta);
@@ -160,7 +143,7 @@ window.SceneManager = {
       this.updateCameraTransform();
     }, { passive: true });
 
-    // 🌟 手機觸控事件 (單指旋轉 + 雙指縮放)
+    // 手機觸控事件 (單指 360 度旋轉 + 雙指捏合縮放)
     window.addEventListener('touchstart', (e) => {
       if (e.target.closest('#bottom-command-hud') || e.target.closest('#top-telemetry-hud')) return;
 
@@ -206,19 +189,18 @@ window.SceneManager = {
   },
 
   renderDualViewport() {
+    if (!this.renderer || !this.scene || !this.camera) return;
+
     const w = window.innerWidth;
     const h = window.innerHeight;
 
+    // 1. 全螢幕主畫面渲染
     this.renderer.setViewport(0, 0, w, h);
     this.renderer.setScissor(0, 0, w, h);
     this.renderer.setScissorTest(false);
+    this.renderer.render(this.scene, this.camera);
 
-    if (this.composer) {
-      this.composer.render();
-    } else {
-      this.renderer.render(this.scene, this.camera);
-    }
-
+    // 2. 探測器畫中畫 (右上角)
     if (window.ProbeManager?.activeProbe && window.ProbeManager?.probeCamera) {
       const isLandscape = w > h;
       const pipW = Math.min(170, w * 0.32);
@@ -249,6 +231,8 @@ window.SceneManager = {
   },
 
   onWindowResize() {
+    if (!this.camera || !this.renderer) return;
+
     const width = window.innerWidth;
     const height = window.innerHeight;
     const isPortrait = height > width;
@@ -256,11 +240,10 @@ window.SceneManager = {
     this.camera.aspect = width / height;
     this.camera.fov = isPortrait ? 60 : 42;
     this.cameraRadius = isPortrait ? 15.0 : 12.0;
-    this.targetY = isPortrait ? 1.6 : 0.8;
+    this.targetY = isPortrait ? 1.5 : 0.8;
     this.camera.updateProjectionMatrix();
     this.updateCameraTransform();
 
     this.renderer.setSize(width, height);
-    if (this.composer) this.composer.setSize(width, height);
   }
 };
