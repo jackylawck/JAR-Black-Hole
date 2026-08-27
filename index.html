@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#020617">
 
-  <!-- 修正後的企業級實用 CSP：允許載入 CDN 腳本與本地樣式 -->
+  <!-- 修正後的 CSP：移除在 <meta> 內無效的 frame-ancestors 指令 -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
     script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
@@ -18,7 +18,6 @@
     connect-src 'self';
     object-src 'none';
     base-uri 'self';
-    frame-ancestors 'none';
   ">
 
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
@@ -36,7 +35,7 @@
   <link rel="apple-touch-icon" sizes="512x512" href="./jarBlackHole512icon.png">
 
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <link rel="stylesheet" href="style.css?v=12.5">
+  <link rel="stylesheet" href="style.css?v=12.6">
 </head>
 <body>
   <div id="starfield-bg" aria-hidden="true"></div>
@@ -145,21 +144,21 @@
     </div>
   </footer>
 
-  <!-- 🌟 修正後的 100% 正確可用 CDN 腳本 (Three.js r128) -->
+  <!-- CDN 依賴 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
   <!-- 業務模組 -->
-  <script src="js/i18n.js?v=12.5"></script>
-  <script src="js/physics.js?v=12.5"></script>
-  <script src="js/audio.js?v=12.5"></script>
-  <script src="js/shaders.js?v=12.5"></script>
-  <script src="js/scene.js?v=12.5"></script>
-  <script src="js/particles.js?v=12.5"></script>
-  <script src="js/probe.js?v=12.5"></script>
-  <script src="js/evolution.js?v=12.5"></script>
-  <script src="js/narrative.js?v=12.5"></script>
-  <script src="js/main.js?v=12.5"></script>
+  <script src="js/i18n.js?v=12.6"></script>
+  <script src="js/physics.js?v=12.6"></script>
+  <script src="js/audio.js?v=12.6"></script>
+  <script src="js/shaders.js?v=12.6"></script>
+  <script src="js/scene.js?v=12.6"></script>
+  <script src="js/particles.js?v=12.6"></script>
+  <script src="js/probe.js?v=12.6"></script>
+  <script src="js/evolution.js?v=12.6"></script>
+  <script src="js/narrative.js?v=12.6"></script>
+  <script src="js/main.js?v=12.6"></script>
 
-  <script src="js/sw-register.js?v=12.5"></script>
+  <script src="js/sw-register.js?v=12.6"></script>
 </body>
 </html>
